@@ -4,6 +4,10 @@
 import "dotenv/config";
 import { defineConfig, env } from "prisma/config";
 
+// For prisma generate, we don't need a real database URL
+// Use a placeholder if DATABASE_URL is not available (e.g., during Netlify build)
+const databaseUrl = process.env.DATABASE_URL || "postgresql://placeholder:placeholder@localhost:5432/placeholder";
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
@@ -11,6 +15,6 @@ export default defineConfig({
   },
   engine: "classic",
   datasource: {
-    url: env("DATABASE_URL"),
+    url: databaseUrl,
   },
 });
