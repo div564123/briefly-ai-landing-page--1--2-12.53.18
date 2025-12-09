@@ -248,7 +248,8 @@ async function adjustPlaybackSpeed(audioBuffer: Buffer, speed: number): Promise<
     }
 
     // Create temp directory if it doesn't exist
-    const tempDir = join(process.cwd(), "tmp")
+    // Use /tmp for Netlify compatibility (read-write access)
+    const tempDir = process.env.NETLIFY ? "/tmp" : join(process.cwd(), "tmp")
     await mkdir(tempDir, { recursive: true }).catch(() => {
       // Directory might already exist
     })
@@ -386,7 +387,8 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
     }
 
     // Create temp directory if it doesn't exist
-    const tempDir = join(process.cwd(), "tmp")
+    // Use /tmp for Netlify compatibility (read-write access)
+    const tempDir = process.env.NETLIFY ? "/tmp" : join(process.cwd(), "tmp")
     await mkdir(tempDir, { recursive: true }).catch(() => {
       // Directory might already exist
     })
