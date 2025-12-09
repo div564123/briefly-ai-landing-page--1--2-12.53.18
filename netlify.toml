@@ -1,0 +1,17 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_FLAGS = "--legacy-peer-deps"
+
+# Next.js configuration for Netlify
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Function configuration
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["prisma/**"]
+

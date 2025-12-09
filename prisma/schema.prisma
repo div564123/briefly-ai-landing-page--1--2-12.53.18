@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                    Int      @id @default(autoincrement())
+  email                 String   @unique
+  name                  String?
+  password              String?  // Optional for Google OAuth users
+  subscriptionTier      String   @default("starter") // "starter" or "pro"
+  stripeCustomerId      String? // For Stripe billing
+  emailNotifications    Boolean  @default(true)
+  generationAlerts     Boolean  @default(true)
+  twoFactorEnabled      Boolean  @default(false)
+  twoFactorSecret       String? // For 2FA secret (encrypted)
+  createdAt             DateTime @default(now())
+  audioGenerations      AudioGeneration[]
+}
+
+model AudioGeneration {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName  String
+  audioUrl  String
+  summary   String?
+  createdAt DateTime @default(now())
+  month     Int      // 1-12
+  year      Int      // e.g., 2024
+}
+
