@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { BrieflyLogo } from '@/components/briefly-logo'
 
 function Command({
   className,
@@ -69,7 +70,7 @@ function CommandInput({
       data-slot="command-input-wrapper"
       className="flex h-9 items-center gap-2 border-b px-3"
     >
-      <SearchIcon className="size-4 shrink-0 opacity-50" />
+      <BrieflyLogo className="w-5 h-5 shrink-0" />
       <CommandPrimitive.Input
         data-slot="command-input"
         className={cn(
