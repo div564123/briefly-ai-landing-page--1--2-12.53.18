@@ -5,6 +5,9 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_FLAGS = "--legacy-peer-deps"
+  # Placeholder DATABASE_URL for build-time (prisma generate doesn't need real DB)
+  # You still need to set the real DATABASE_URL in Netlify dashboard for runtime
+  DATABASE_URL = "postgresql://placeholder:placeholder@localhost:5432/placeholder"
 
 # Next.js configuration for Netlify
 [[plugins]]

@@ -6,7 +6,15 @@ import { defineConfig, env } from "prisma/config";
 
 // For prisma generate, we don't need a real database URL
 // Use a placeholder if DATABASE_URL is not available (e.g., during Netlify build)
-const databaseUrl = process.env.DATABASE_URL || "postgresql://placeholder:placeholder@localhost:5432/placeholder";
+// The env() function will throw if DATABASE_URL is missing, so we catch it
+let databaseUrl: string;
+try {
+  databaseUrl = env("DATABASE_URL");
+} catch (error) {
+  // If DATABASE_URL is not set, use a placeholder for build-time
+  // prisma generate doesn't actually need a real database connection
+  databaseUrl = "postgresql://placeholder:placeholder@localhost:5432/placeholder";
+}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
