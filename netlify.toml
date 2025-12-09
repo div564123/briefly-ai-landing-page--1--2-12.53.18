@@ -8,6 +8,8 @@
   # Placeholder DATABASE_URL for build-time (prisma generate doesn't need real DB)
   # You still need to set the real DATABASE_URL in Netlify dashboard for runtime
   DATABASE_URL = "postgresql://placeholder:placeholder@localhost:5432/placeholder"
+  # Set NETLIFY flag for code that needs to detect Netlify environment
+  NETLIFY = "true"
 
 # Next.js configuration for Netlify
 [[plugins]]
