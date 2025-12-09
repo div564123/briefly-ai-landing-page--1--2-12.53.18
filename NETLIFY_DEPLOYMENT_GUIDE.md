@@ -1,6 +1,6 @@
-# Netlify Deployment Guide - Briefly AI
+# Netlify Deployment Guide - Capso AI
 
-This guide will help you deploy your Briefly AI application to Netlify.
+This guide will help you deploy your Capso AI application to Netlify.
 
 ## ⚠️ Important Issues to Fix Before Deployment
 

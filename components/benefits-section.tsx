@@ -39,7 +39,7 @@ export default function BenefitsSection() {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-4 text-balance">
-            Why Students Choose Briefly
+            Why Students Choose Capso
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">A study method adapted to your lifestyle</p>
         </div>

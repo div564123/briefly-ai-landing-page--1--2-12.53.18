@@ -136,8 +136,8 @@ export default function CookiesPage() {
             </p>
             <p className="text-muted-foreground leading-relaxed mt-4">
               If you have questions about our use of cookies, please contact us at{" "}
-              <a href="mailto:privacy@briefly.ai" className="text-primary hover:text-secondary">
-                privacy@briefly.ai
+              <a href="mailto:privacy@capso.ai" className="text-primary hover:text-secondary">
+                privacy@capso.ai
               </a>
             </p>
           </section>

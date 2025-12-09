@@ -19,7 +19,7 @@ export default function FAQPage() {
           a: "You can upload PDFs, text files, Word documents, photos of handwritten notes, and even images of whiteboards. Our AI will analyze the content and generate an audio summary.",
         },
         {
-          q: "How does Briefly AI work?",
+          q: "How does Capso AI work?",
           a: "Simply upload your course material, select your preferred voice and speed settings, and our AI will generate a clear audio summary. You can then listen, download, or organize it in custom folders.",
         },
         {
@@ -106,7 +106,7 @@ export default function FAQPage() {
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Frequently Asked Questions</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to know about Briefly AI. Can't find what you're looking for? Contact our support team.
+            Everything you need to know about Capso AI. Can't find what you're looking for? Contact our support team.
           </p>
         </div>
 
@@ -156,7 +156,7 @@ export default function FAQPage() {
         <div className="mt-12 text-center bg-gradient-to-r from-primary to-secondary rounded-2xl p-12 text-white">
           <h2 className="text-3xl font-bold mb-4">Still Have Questions?</h2>
           <p className="text-lg mb-6 opacity-90">
-            Our support team is here to help you get the most out of Briefly AI.
+            Our support team is here to help you get the most out of Capso AI.
           </p>
           <Link
             href="/contact"

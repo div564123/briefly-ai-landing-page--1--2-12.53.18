@@ -91,7 +91,7 @@ export function AppSidebar({
     <aside className="w-64 border-r border-sidebar-border bg-sidebar flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
         <h1 className="text-2xl font-bold text-sidebar-foreground">
-          Briefly{" "}
+          Capso{" "}
           <span className="bg-gradient-to-r from-sidebar-primary to-sidebar-primary/70 bg-clip-text text-transparent">
             AI
           </span>

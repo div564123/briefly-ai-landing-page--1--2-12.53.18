@@ -12,7 +12,7 @@ export default function Footer() {
           <div>
             <div className="mb-4">
               <span className="text-2xl font-bold">
-                <span className="text-foreground">Briefly</span>{" "}
+                <span className="text-foreground">Capso</span>{" "}
                 <span className="gradient-purple bg-clip-text text-transparent">AI</span>
               </span>
             </div>
@@ -88,7 +88,7 @@ export default function Footer() {
 
         {/* Bottom */}
         <div className="border-t border-border pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-muted-foreground">© 2025 Briefly AI. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© 2025 Capso AI. All rights reserved.</p>
           <div className="flex gap-4">
             <Link href="#" className="text-muted-foreground hover:text-primary transition">
               <Github size={20} />

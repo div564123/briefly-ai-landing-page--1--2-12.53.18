@@ -8,7 +8,7 @@ export default function ProcessSection() {
       number: "1",
       icon: Upload,
       title: "Upload Your Course",
-      description: "Upload your notes, PDFs, or documents. Briefly analyzes them instantly.",
+      description: "Upload your notes, PDFs, or documents. Capso analyzes them instantly.",
     },
     {
       number: "2",

@@ -72,7 +72,7 @@ export async function POST(req: Request) {
           price_data: {
             currency: "eur",
             product_data: {
-              name: "Briefly AI Pro Action",
+              name: "Capso AI Pro Action",
               description: "Unlimited uploads, voice speed control, background music, and audio organization",
             },
             unit_amount: 899, // €8.99 in cents

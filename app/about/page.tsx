@@ -22,7 +22,7 @@ export default function AboutPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-6">
             <Users className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">About Briefly AI</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">About Capso AI</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             We're on a mission to transform how students learn by making education accessible through audio.
           </p>
@@ -36,12 +36,12 @@ export default function AboutPage() {
               Our Story
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              Briefly AI was founded by students who struggled with traditional learning methods. We realized that not
+              Capso AI was founded by students who struggled with traditional learning methods. We realized that not
               everyone learns best by reading textbooks for hours. Some of us are auditory learners, some need to
               multitask, and some just want to make better use of commute time.
             </p>
             <p className="text-muted-foreground leading-relaxed mt-4">
-              That's why we built Briefly AI - to convert any course material into high-quality audio summaries that you
+              That's why we built Capso AI - to convert any course material into high-quality audio summaries that you
               can listen to anywhere, anytime. Our AI technology understands your documents and creates clear, engaging
               audio content that helps you learn faster and retain more.
             </p>

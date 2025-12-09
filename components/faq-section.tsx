@@ -46,7 +46,7 @@ export default function FAQSection() {
             <HelpCircle className="text-primary" size={24} />
           </div>
           <h2 className="text-4xl font-bold text-foreground mb-4">Frequently Asked Questions</h2>
-          <p className="text-muted-foreground">Everything you need to know about Briefly AI.</p>
+          <p className="text-muted-foreground">Everything you need to know about Capso AI.</p>
         </div>
 
         {/* FAQs */}

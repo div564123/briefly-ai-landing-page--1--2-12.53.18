@@ -56,7 +56,7 @@ export async function GET() {
     return new NextResponse(JSON.stringify(exportData, null, 2), {
       headers: {
         "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="briefly-export-${new Date().toISOString().split("T")[0]}.json"`,
+        "Content-Disposition": `attachment; filename="capso-export-${new Date().toISOString().split("T")[0]}.json"`,
       },
     })
   } catch (error) {

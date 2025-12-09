@@ -18,7 +18,7 @@ export default function DashboardPreview() {
           <div className="bg-gradient-to-r from-primary to-secondary px-8 py-4 flex justify-between items-center">
             <div className="flex items-center gap-2">
               <Zap className="text-white" size={20} />
-              <h3 className="font-bold text-white text-lg">Briefly AI Dashboard</h3>
+              <h3 className="font-bold text-white text-lg">Capso AI Dashboard</h3>
             </div>
             <div className="flex gap-2">
               <div className="w-3 h-3 rounded-full bg-white/30"></div>

@@ -13,7 +13,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link href="#" className="flex items-center gap-1">
-            <span className="font-bold text-2xl text-gray-900">Briefly</span>
+            <span className="font-bold text-2xl text-gray-900">Capso</span>
             <span className="font-bold text-2xl bg-gradient-to-r from-primary to-[#A97BFF] bg-clip-text text-transparent">
               AI
             </span>

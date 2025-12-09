@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* <CHANGE> Purple educational theme for Briefly AI */
+  /* <CHANGE> Purple educational theme for Capso AI */
   --background: #f8f7ff;
   --foreground: #1a1a2e;
   --card: #ffffff;

@@ -40,7 +40,7 @@ export default function LoginPage() {
       <div className="absolute top-8 left-8">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-2xl font-bold text-foreground">
-            Briefly <span className="text-primary">AI</span>
+            Capso <span className="text-primary">AI</span>
           </span>
         </Link>
       </div>

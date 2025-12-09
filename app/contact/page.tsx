@@ -37,8 +37,8 @@ export default function ContactPage() {
             </div>
             <h3 className="font-semibold mb-2">Email Us</h3>
             <p className="text-sm text-muted-foreground mb-3">We'll respond within 24 hours</p>
-            <a href="mailto:support@briefly.ai" className="text-primary hover:text-secondary transition">
-              support@briefly.ai
+            <a href="mailto:support@capso.ai" className="text-primary hover:text-secondary transition">
+              support@capso.ai
             </a>
           </div>
 

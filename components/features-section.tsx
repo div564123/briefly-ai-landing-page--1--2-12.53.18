@@ -27,7 +27,7 @@ export default function FeaturesSection() {
     {
       icon: Code,
       title: "API Available",
-      description: "POST /briefly/generate-audio for complete integration.",
+      description: "POST /capso/generate-audio for complete integration.",
     },
   ]
 

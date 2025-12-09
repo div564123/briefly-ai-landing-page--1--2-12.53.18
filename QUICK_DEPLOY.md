@@ -1,4 +1,4 @@
-# Quick Deploy Guide - Briefly AI
+# Quick Deploy Guide - Capso AI
 
 **Your Email**: briefly.contact.10@gmail.com
 

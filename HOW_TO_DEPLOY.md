@@ -1,6 +1,6 @@
-# How to Deploy Briefly AI to the Internet
+# How to Deploy Capso AI to the Internet
 
-This guide will walk you through deploying your Briefly AI application to the internet. We'll use **Vercel** (recommended for Next.js apps) as it's the easiest and most reliable option.
+This guide will walk you through deploying your Capso AI application to the internet. We'll use **Vercel** (recommended for Next.js apps) as it's the easiest and most reliable option.
 
 ## 💡 Recommended Approach: Deploy First, Then OAuth
 

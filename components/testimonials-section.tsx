@@ -8,7 +8,7 @@ export default function TestimonialsSection() {
       name: "Sophie L.",
       role: "Medical Student",
       content:
-        "Briefly has revolutionized my studying. I can now listen to my courses during train rides. I've saved 10 hours per week!",
+        "Capso has revolutionized my studying. I can now listen to my courses during train rides. I've saved 10 hours per week!",
       rating: 5,
     },
     {
@@ -36,7 +36,7 @@ export default function TestimonialsSection() {
             Over 2,400 Students Trust Us
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover how Briefly helps students study more effectively
+            Discover how Capso helps students study more effectively
           </p>
         </div>
 

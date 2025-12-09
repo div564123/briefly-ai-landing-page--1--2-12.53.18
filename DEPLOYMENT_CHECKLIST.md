@@ -1,4 +1,4 @@
-# Deployment Checklist - Briefly AI
+# Deployment Checklist - Capso AI
 
 ## ✅ Pre-Deployment Verification
 

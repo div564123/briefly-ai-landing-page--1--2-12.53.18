@@ -9,7 +9,7 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Briefly AI - Transform Your Courses into Audio",
+  title: "Capso AI - Transform Your Courses into Audio",
   description:
     "Convert your study materials into clear, customizable audio summaries. Perfect for students who want to learn smarter, not harder.",
   generator: "v0.app",

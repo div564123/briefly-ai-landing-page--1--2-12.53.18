@@ -34,7 +34,7 @@ export default function TermsPage() {
               1. Acceptance of Terms
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              By accessing and using Briefly AI, you accept and agree to be bound by the terms and provision of this
+              By accessing and using Capso AI, you accept and agree to be bound by the terms and provision of this
               agreement. If you do not agree to abide by these terms, please do not use this service.
             </p>
           </section>
@@ -45,13 +45,13 @@ export default function TermsPage() {
               2. Use License
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Permission is granted to temporarily use Briefly AI for personal, non-commercial purposes. This is the
+              Permission is granted to temporarily use Capso AI for personal, non-commercial purposes. This is the
               grant of a license, not a transfer of title, and under this license you may not:
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
               <li>Modify or copy the materials</li>
               <li>Use the materials for any commercial purpose or public display</li>
-              <li>Attempt to reverse engineer any software contained on Briefly AI</li>
+              <li>Attempt to reverse engineer any software contained on Capso AI</li>
               <li>Remove any copyright or proprietary notations from the materials</li>
               <li>Transfer the materials to another person or "mirror" the materials on any other server</li>
             </ul>
@@ -77,7 +77,7 @@ export default function TermsPage() {
             <p className="text-muted-foreground leading-relaxed">
               Certain parts of the Service are billed on a subscription basis. You will be billed in advance on a
               recurring and periodic basis. Billing cycles are set on a monthly basis. At the end of each billing cycle,
-              your subscription will automatically renew unless you cancel it or Briefly AI cancels it.
+              your subscription will automatically renew unless you cancel it or Capso AI cancels it.
             </p>
           </section>
 
@@ -87,7 +87,7 @@ export default function TermsPage() {
               5. Content Ownership
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              You retain all rights to the content you upload to Briefly AI. We do not claim ownership of your
+              You retain all rights to the content you upload to Capso AI. We do not claim ownership of your
               materials. However, you grant us a license to use, store, and process your content to provide our
               services.
             </p>
@@ -110,8 +110,8 @@ export default function TermsPage() {
               7. Limitation of Liability
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              In no event shall Briefly AI or its suppliers be liable for any damages arising out of the use or
-              inability to use the materials on Briefly AI, even if Briefly AI or an authorized representative has been
+              In no event shall Capso AI or its suppliers be liable for any damages arising out of the use or
+              inability to use the materials on Capso AI, even if Capso AI or an authorized representative has been
               notified of the possibility of such damage.
             </p>
           </section>
@@ -123,8 +123,8 @@ export default function TermsPage() {
             </h2>
             <p className="text-muted-foreground leading-relaxed">
               If you have any questions about these Terms, please contact us at{" "}
-              <a href="mailto:legal@briefly.ai" className="text-primary hover:text-secondary">
-                legal@briefly.ai
+              <a href="mailto:legal@capso.ai" className="text-primary hover:text-secondary">
+                legal@capso.ai
               </a>
             </p>
           </section>

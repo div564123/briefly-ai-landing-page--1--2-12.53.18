@@ -1,4 +1,4 @@
-# Netlify Deployment Review - Briefly AI
+# Netlify Deployment Review - Capso AI
 
 ## ✅ Project Review Summary
 

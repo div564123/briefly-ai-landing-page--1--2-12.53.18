@@ -55,7 +55,7 @@ export default function PricingSection() {
       name: "Starter",
       price: "0",
       period: "€ / month",
-      description: "Perfect for trying out Briefly",
+      description: "Perfect for trying out Capso",
       icon: Zap,
       features: [
         { name: "5 uploads per month", value: "", included: true },
