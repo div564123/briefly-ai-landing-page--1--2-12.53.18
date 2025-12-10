@@ -787,28 +787,23 @@ export async function POST(req: Request) {
       console.log("Audio with background music:", audioBuffer.length, "bytes")
     }
 
-    // Step 4: Save audio file and generate download URL
-    console.log("Step 4: Saving audio file...")
+    // Step 4: Prepare audio for response
+    // On Netlify, we can't save to public/audio (read-only filesystem)
+    // Instead, we'll return the audio directly or store in database
+    console.log("Step 4: Preparing audio response...")
     const audioId = randomUUID()
     const audioFileName = `${audioId}.mp3`
-    const audioDir = join(process.cwd(), "public", "audio")
-    const audioPath = join(audioDir, audioFileName)
-
-    // Ensure audio directory exists
-    try {
-      await mkdir(audioDir, { recursive: true })
-    } catch (error) {
-      // Directory might already exist, that's okay
-    }
-
-    // Save audio file
-    await writeFile(audioPath, audioBuffer)
-
-    // Generate secure download URL
+    
+    // For Netlify compatibility: return audio as base64 in response
+    // The audio will be available immediately, no file storage needed
+    const audioBase64 = audioBuffer.toString('base64')
+    const audioDataUrl = `data:audio/mpeg;base64,${audioBase64}`
+    
+    // Generate download URL (will return audio directly)
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
     const downloadUrl = `${baseUrl}/api/audio/download/${audioId}`
 
-    console.log("Audio saved:", audioPath)
+    console.log("Audio prepared for response:", audioBuffer.length, "bytes")
     console.log("Download URL:", downloadUrl)
 
     // 5. Save audio generation to database (tracks monthly usage)
@@ -834,9 +829,11 @@ export async function POST(req: Request) {
     console.log("Updated monthly uploads:", updatedMonthlyUploads, "/", uploadLimit)
     console.log("===================================")
 
-    // Return success response with download URL
+    // Return success response with audio data and download URL
     return NextResponse.json({
       success: true,
+      audioData: audioDataUrl, // Base64 audio data for immediate use
+      audioBuffer: audioBase64, // Also include as buffer for compatibility
       message: "Audio generation completed",
       audio: {
         id: audioId,

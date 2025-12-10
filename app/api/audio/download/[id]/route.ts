@@ -1,8 +1,6 @@
 export const runtime = "nodejs"
 
 import { NextResponse } from "next/server"
-import { readFile } from "fs/promises"
-import { join } from "path"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 
@@ -32,36 +30,53 @@ export async function GET(
       return NextResponse.json({ error: "Audio ID is required" }, { status: 400 })
     }
 
-    // TODO: Verify that the user owns this audio file (check database)
-    // For now, we'll allow any authenticated user to download
-
-    // Construct file path
-    const audioFileName = `${audioId}.mp3`
-    const audioPath = join(process.cwd(), "public", "audio", audioFileName)
-
-    console.log("Looking for audio file at:", audioPath)
-
+    // Get audio generation from database
+    const { prisma } = await import("@/lib/prisma")
+    
     try {
-      // Read the audio file
-      const audioBuffer = await readFile(audioPath)
-      console.log("✅ Audio file found, size:", audioBuffer.length, "bytes")
-
-      // Return the audio file with proper headers
-      return new NextResponse(audioBuffer, {
-        headers: {
-          "Content-Type": "audio/mpeg",
-          "Content-Disposition": `attachment; filename="${audioFileName}"`,
-          "Content-Length": audioBuffer.length.toString(),
+      // Find audio generation by ID (stored in audioUrl)
+      const audioGeneration = await (prisma as any).audioGeneration.findFirst({
+        where: {
+          audioUrl: {
+            contains: audioId
+          }
         },
+        include: {
+          user: true
+        }
       })
-    } catch (error) {
-      console.error("❌ Error reading audio file:", error)
-      console.error("   File path:", audioPath)
-      console.error("   Error details:", error instanceof Error ? error.message : String(error))
+
+      if (!audioGeneration) {
+        console.error("❌ Audio generation not found for ID:", audioId)
+        return NextResponse.json({ 
+          error: "Audio file not found"
+        }, { status: 404 })
+      }
+
+      // Verify user owns this audio file
+      const userEmail = session.user.email
+      if (audioGeneration.user.email !== userEmail) {
+        console.error("❌ User does not own this audio file")
+        return NextResponse.json({ 
+          error: "Unauthorized"
+        }, { status: 403 })
+      }
+
+      // On Netlify, files aren't stored on disk
+      // The audio should be retrieved from the original generation
+      // For now, return an error suggesting to regenerate
+      // TODO: Implement cloud storage or database storage for audio files
+      console.log("⚠️  Audio file requested but not stored (Netlify limitation)")
       return NextResponse.json({ 
-        error: "Audio file not found",
-        details: process.env.NODE_ENV === "development" ? `Path: ${audioPath}` : undefined
+        error: "Audio file not available for download. Please regenerate the audio.",
+        message: "On Netlify, audio files are returned directly in the generation response. Use the audioData field from the generation API."
       }, { status: 404 })
+    } catch (error) {
+      console.error("❌ Error retrieving audio:", error)
+      return NextResponse.json({ 
+        error: "Error retrieving audio file",
+        details: error instanceof Error ? error.message : "Unknown error"
+      }, { status: 500 })
     }
   } catch (error) {
     console.error("Error in audio download API:", error)
