@@ -17,6 +17,9 @@ if (!process.env.NEXTAUTH_SECRET) {
 
 if (!process.env.DATABASE_URL) {
   console.error("⚠️ DATABASE_URL is not set. Database operations will fail.")
+} else if (process.env.DATABASE_URL.includes("build:build@build:5432") || 
+           process.env.DATABASE_URL.includes("placeholder:placeholder@localhost")) {
+  console.error("⚠️ Using build-time placeholder DATABASE_URL. Real DATABASE_URL must be set in Netlify dashboard.")
 }
 
 export const authOptions = {
@@ -44,8 +47,11 @@ export const authOptions = {
         if (user.email) {
           try {
             // Check if DATABASE_URL is configured before querying
-            if (!process.env.DATABASE_URL) {
-              console.error("DATABASE_URL not configured, skipping user lookup")
+            const dbUrl = process.env.DATABASE_URL
+            if (!dbUrl || 
+                dbUrl.includes("build:build@build:5432") || 
+                dbUrl.includes("placeholder:placeholder@localhost")) {
+              console.error("DATABASE_URL not configured or using placeholder, skipping user lookup")
               return token
             }
             

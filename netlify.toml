@@ -7,12 +7,13 @@
   NPM_FLAGS = "--legacy-peer-deps"
   # Set NETLIFY flag for code that needs to detect Netlify environment
   NETLIFY = "true"
-  # Build-time DATABASE_URL (syntactically valid but non-connectable - prisma generate doesn't need real DB)
-  # The real DATABASE_URL must be set in Netlify dashboard for runtime
-  DATABASE_URL = "postgresql://build:build@build:5432/build"
-  # Secrets scanning configuration - ignore documentation files and build-time placeholders
+  # Secrets scanning configuration - ignore documentation files
   SECRETS_SCAN_OMIT_PATHS = "*.md,*.txt"
-  SECRETS_SCAN_OMIT_KEYS = "LEMONFOX_API_URL,DATABASE_URL"
+  SECRETS_SCAN_OMIT_KEYS = "LEMONFOX_API_URL"
+  
+  # NOTE: DATABASE_URL should NOT be set here
+  # It must be set in Netlify Dashboard (Site settings → Environment variables)
+  # The dashboard value will be used for both build and runtime
 
 # Next.js configuration for Netlify
 [[plugins]]

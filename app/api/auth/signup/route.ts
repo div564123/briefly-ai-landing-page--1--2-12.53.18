@@ -13,11 +13,21 @@ export async function POST(req: Request) {
     }
 
     // Check if DATABASE_URL is configured
-    if (!process.env.DATABASE_URL) {
+    const databaseUrl = process.env.DATABASE_URL
+    if (!databaseUrl) {
       console.error("❌ DATABASE_URL is not configured")
       return NextResponse.json({ 
         error: "Database not configured. Please configure DATABASE_URL in your environment variables.",
         details: "DATABASE_URL environment variable is missing. This is required for the application to work."
+      }, { status: 500 })
+    }
+
+    // Check if using build-time placeholder
+    if (databaseUrl.includes("build:build@build:5432") || databaseUrl.includes("placeholder:placeholder@localhost")) {
+      console.error("❌ Using build-time placeholder DATABASE_URL. Real DATABASE_URL must be set in Netlify dashboard.")
+      return NextResponse.json({ 
+        error: "Database not configured. Please set DATABASE_URL in Netlify dashboard (Site settings → Environment variables).",
+        details: "The build-time placeholder DATABASE_URL is being used. You must add the real PostgreSQL connection string in Netlify dashboard for the app to work."
       }, { status: 500 })
     }
 
@@ -27,6 +37,17 @@ export async function POST(req: Request) {
     } catch (dbError) {
       console.error("❌ Database connection failed:", dbError)
       const errorMessage = dbError instanceof Error ? dbError.message : String(dbError)
+      
+      // Check for specific connection errors
+      if (errorMessage.includes("Can't reach database server") || 
+          errorMessage.includes("connect ECONNREFUSED") ||
+          errorMessage.includes("ENOTFOUND")) {
+        return NextResponse.json({ 
+          error: "Cannot connect to database. Please check your DATABASE_URL configuration.",
+          details: "The database server is not reachable. Verify that your DATABASE_URL is correct and the database is accessible."
+        }, { status: 500 })
+      }
+      
       return NextResponse.json({ 
         error: "Cannot connect to database. Please check your DATABASE_URL configuration.",
         details: process.env.NODE_ENV === "development" ? errorMessage : "Database connection failed"
