@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { LayoutDashboard, Settings, Folder, Plus, Trash2, Lock, ArrowLeft } from "lucide-react"
+import { LayoutDashboard, Settings, Folder, Plus, Trash2, Lock, ArrowLeft, Crown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
 import Link from "next/link"
@@ -90,12 +90,20 @@ export function AppSidebar({
   return (
     <aside className="w-64 border-r border-sidebar-border bg-sidebar flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
-        <h1 className="text-2xl font-bold text-sidebar-foreground">
-          Capso{" "}
-          <span className="bg-gradient-to-r from-sidebar-primary to-sidebar-primary/70 bg-clip-text text-transparent">
-            AI
-          </span>
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-sidebar-foreground">
+            Capso{" "}
+            <span className="bg-gradient-to-r from-sidebar-primary to-sidebar-primary/70 bg-clip-text text-transparent">
+              AI
+            </span>
+          </h1>
+          {userPlan === "pro" && (
+            <div className="flex items-center gap-1.5 bg-gradient-to-r from-sidebar-primary/20 to-sidebar-primary/10 text-sidebar-primary text-xs font-semibold px-2.5 py-1 rounded-full border border-sidebar-primary/30">
+              <Crown className="w-3 h-3" />
+              <span>Pro</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <nav className="flex-1 p-4 space-y-2 overflow-auto">
@@ -256,7 +264,9 @@ export function AppSidebar({
       <div className="p-4 border-t border-sidebar-border">
         <div className="bg-gradient-to-br from-sidebar-accent to-sidebar-accent/80 rounded-lg p-4">
           <div className="text-xs font-medium text-sidebar-accent-foreground mb-1">Current Plan</div>
-          <div className="text-sm font-bold text-sidebar-primary">{userPlan}</div>
+          <div className="text-sm font-bold text-sidebar-primary">
+            {userPlan === "pro" ? "Pro Plan" : "Starter Plan"}
+          </div>
           {userPlan === "starter" && (
             <Link
               href="/pricing"

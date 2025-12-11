@@ -50,7 +50,7 @@ export default function PricingPage() {
       description: "Perfect for trying out Capso",
       icon: Zap,
       features: [
-        { name: "5 uploads per month", value: "", included: true },
+        { name: "4 uploads per month", value: "", included: true },
         { name: "Multiple voice options", value: "", included: true },
         { name: "Language selection", value: "English, French, Spanish", included: true },
         { name: "Background Music", value: "Yes", included: true },

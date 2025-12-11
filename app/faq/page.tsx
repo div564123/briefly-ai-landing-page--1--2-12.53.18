@@ -24,7 +24,7 @@ export default function FAQPage() {
         },
         {
           q: "Is there a free trial?",
-          a: "Yes! Our Starter plan is completely free and gives you 5 uploads per month with basic features. No credit card required.",
+          a: "Yes! Our Starter plan is completely free and gives you 4 uploads per month with basic features. No credit card required.",
         },
       ],
     },
@@ -56,7 +56,7 @@ export default function FAQPage() {
       questions: [
         {
           q: "Is there an upload limit?",
-          a: "It depends on your plan. The Starter plan allows 5 uploads per month, while Pro Action and Pro plans offer unlimited uploads.",
+          a: "It depends on your plan. The Starter plan allows 4 uploads per month, while Pro Action and Pro plans offer unlimited uploads.",
         },
         {
           q: "Can I cancel my subscription anytime?",

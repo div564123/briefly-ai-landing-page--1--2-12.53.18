@@ -32,7 +32,7 @@ async function getUserMonthlyUploads(userId: number): Promise<number> {
 
 // Usage limits based on subscription tier
 const USAGE_LIMITS = {
-  starter: 5, // 5 uploads per month
+  starter: 4, // 4 uploads per month
   pro: Infinity, // Unlimited uploads
 }
 

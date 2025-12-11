@@ -171,65 +171,53 @@ export function UploadSection({
         )}
       </div>
 
-      <Card className="w-full max-w-3xl border border-border/50 bg-gradient-to-r from-primary/5 via-background to-primary/5">
-        <div className="px-4 py-2 flex items-center gap-4">
-          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
-            <Sparkles className="w-3 h-3 text-primary" />
+      {/* Only show monthly generations bar for Starter plan users */}
+      {usage && usage.limit !== Infinity && usage.tier !== "pro" && (
+        <Card className="w-full max-w-3xl border border-border/50 bg-gradient-to-r from-primary/5 via-background to-primary/5">
+          <div className="px-4 py-2 flex items-center gap-4">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
+              <Sparkles className="w-3 h-3 text-primary" />
+            </div>
+
+            <div className="flex-1 flex items-center gap-3">
+              <div className="shrink-0">
+                <h3 className="text-xs font-semibold text-foreground flex items-center gap-1">
+                  Monthly Generations
+                  <Zap className="w-2.5 h-2.5 text-primary" />
+                </h3>
+              </div>
+
+              <div className="flex-1 relative h-1.5 bg-muted/50 rounded-full overflow-hidden backdrop-blur-sm">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/5" />
+                <div
+                  className="relative h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 shadow-sm shadow-primary/20"
+                  style={{ 
+                    width: `${Math.min(100, (usage.current / usage.limit) * 100)}%`
+                  }}
+                />
+              </div>
+
+              <div className="shrink-0 flex items-center gap-2">
+                <div className="text-sm font-bold text-foreground">
+                  {usage.current}/{usage.limit}
+                </div>
+                <span className="text-[10px] text-muted-foreground">
+                  {usage.remaining > 0 
+                    ? `${usage.remaining} left` 
+                    : "limit reached"}
+                </span>
+              </div>
+            </div>
+
+            <Link
+              href="/pricing"
+              className="text-[10px] bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent hover:from-primary/90 hover:to-primary/70 font-medium shrink-0"
+            >
+              Upgrade to Pro
+            </Link>
           </div>
-
-          <div className="flex-1 flex items-center gap-3">
-            <div className="shrink-0">
-              <h3 className="text-xs font-semibold text-foreground flex items-center gap-1">
-                Monthly Generations
-                <Zap className="w-2.5 h-2.5 text-primary" />
-              </h3>
-            </div>
-
-            <div className="flex-1 relative h-1.5 bg-muted/50 rounded-full overflow-hidden backdrop-blur-sm">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/5" />
-              <div
-                className="relative h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 shadow-sm shadow-primary/20"
-                style={{ 
-                  width: usage 
-                    ? usage.limit === Infinity 
-                      ? "100%" 
-                      : `${Math.min(100, (usage.current / usage.limit) * 100)}%`
-                    : "0%"
-                }}
-              />
-            </div>
-
-            <div className="shrink-0 flex items-center gap-2">
-              {usage ? (
-                <>
-                  <div className="text-sm font-bold text-foreground">
-                    {usage.limit === Infinity ? "∞" : `${usage.current}/${usage.limit}`}
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">
-                    {usage.limit === Infinity 
-                      ? "unlimited" 
-                      : usage.remaining > 0 
-                        ? `${usage.remaining} left` 
-                        : "limit reached"}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <div className="text-sm font-bold text-foreground">-/-</div>
-                  <span className="text-[10px] text-muted-foreground">loading...</span>
-                </>
-              )}
-            </div>
-          </div>
-
-          <Link
-            href="/pricing"
-            className="text-[10px] bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent hover:from-primary/90 hover:to-primary/70 font-medium shrink-0"
-          >
-            Upgrade to Pro
-          </Link>
-        </div>
-      </Card>
+        </Card>
+      )}
     </div>
   )
 }

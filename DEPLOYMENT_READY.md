@@ -306,3 +306,7 @@ Your Capso AI application is ready for Netlify deployment. All critical issues h
 
 
 
+
+
+
+

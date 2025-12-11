@@ -27,7 +27,9 @@ async function getUserSubscriptionTier(userId: number): Promise<"starter" | "pro
   const user = await prisma.user.findUnique({
     where: { id: userId },
   })
-  return ((user as any)?.subscriptionTier as "starter" | "pro") || "starter"
+  const tier = ((user as any)?.subscriptionTier as "starter" | "pro") || "starter"
+  console.log("🔍 Database tier check - User ID:", userId, "Tier from DB:", tier, "Full user:", user ? { id: user.id, email: user.email, subscriptionTier: (user as any).subscriptionTier } : "User not found")
+  return tier
 }
 
 // Get monthly upload count for current month
@@ -49,7 +51,7 @@ async function getUserMonthlyUploads(userId: number): Promise<number> {
 
 // Usage limits based on subscription tier
 const USAGE_LIMITS = {
-  starter: 5, // 5 uploads per month
+  starter: 4, // 4 uploads per month
   pro: Infinity, // Unlimited uploads
 }
 
@@ -102,8 +104,19 @@ async function extractTextFromFile(file: File): Promise<string> {
                     if (textItem.R && textItem.R.length > 0) {
                       for (const run of textItem.R) {
                         if (run.T) {
-                          // Decode URI-encoded text
-                          fullText += decodeURIComponent(run.T) + " "
+                          try {
+                            // Decode URI-encoded text
+                            fullText += decodeURIComponent(run.T) + " "
+                          } catch (decodeError) {
+                            // If decodeURIComponent fails (malformed URL), try to use the text as-is
+                            console.warn("Failed to decode PDF text, using raw text:", decodeError)
+                            try {
+                              fullText += run.T + " "
+                            } catch (fallbackError) {
+                              // If even that fails, skip this text item
+                              console.warn("Failed to extract text from PDF item, skipping:", fallbackError)
+                            }
+                          }
                         }
                       }
                     }
@@ -193,7 +206,8 @@ async function translateText(text: string, targetLanguage: string): Promise<stri
         },
       ],
       temperature: 0.3,
-      max_tokens: 2000,
+      max_tokens: 1500, // Reduced for faster translation
+      stream: false, // Ensure no streaming for faster response
     })
 
     const translated = completion.choices[0]?.message?.content || text
@@ -487,7 +501,8 @@ async function generateSummary(text: string, summaryLength: "short" | "medium" |
         },
       ],
       temperature: 0.7,
-      max_tokens: summaryLength === "full" ? 1000 : summaryLength === "medium" ? 500 : 200,
+      max_tokens: summaryLength === "full" ? 800 : summaryLength === "medium" ? 400 : 150, // Reduced for faster generation
+      stream: false, // Ensure no streaming for faster response
     })
 
     const summary = completion.choices[0]?.message?.content || ""
@@ -647,12 +662,16 @@ export async function POST(req: Request) {
 
     // 2. Check Subscription Tier
     const subscriptionTier = await getUserSubscriptionTier(userId)
+    console.log("🔍 User subscription tier:", subscriptionTier, "for user ID:", userId)
 
     // 3. Check Usage Limits
     const monthlyUploads = await getUserMonthlyUploads(userId)
     const uploadLimit = USAGE_LIMITS[subscriptionTier]
+    console.log("📊 Usage check - Monthly uploads:", monthlyUploads, "Limit:", uploadLimit, "Tier:", subscriptionTier)
 
-    if (monthlyUploads >= uploadLimit) {
+    // Only check limit if it's not Infinity (Pro users have unlimited)
+    if (subscriptionTier !== "pro" && uploadLimit !== Infinity && monthlyUploads >= uploadLimit) {
+      console.log("❌ Limit reached for Starter user")
       return NextResponse.json(
         {
           error: "Monthly upload limit reached",
@@ -662,6 +681,10 @@ export async function POST(req: Request) {
         },
         { status: 403 }
       )
+    }
+    
+    if (subscriptionTier === "pro") {
+      console.log("✅ Pro user - unlimited access granted")
     }
 
     // 4. Handle File Upload (multipart form data)
@@ -796,12 +819,17 @@ export async function POST(req: Request) {
     
     // For Netlify compatibility: return audio as base64 in response
     // The audio will be available immediately, no file storage needed
+    console.log("Converting audio buffer to base64...")
     const audioBase64 = audioBuffer.toString('base64')
     const audioDataUrl = `data:audio/mpeg;base64,${audioBase64}`
     
     // Generate download URL (will return audio directly)
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
     const downloadUrl = `${baseUrl}/api/audio/download/${audioId}`
+    
+    console.log("Audio size:", audioBuffer.length, "bytes")
+    console.log("Base64 size:", audioBase64.length, "chars")
+    console.log("Audio data URL created, length:", audioDataUrl.length)
 
     console.log("Audio prepared for response:", audioBuffer.length, "bytes")
     console.log("Download URL:", downloadUrl)
@@ -830,10 +858,10 @@ export async function POST(req: Request) {
     console.log("===================================")
 
     // Return success response with audio data and download URL
-    return NextResponse.json({
+    console.log("Preparing response JSON...")
+    const responseData = {
       success: true,
       audioData: audioDataUrl, // Base64 audio data for immediate use
-      audioBuffer: audioBase64, // Also include as buffer for compatibility
       message: "Audio generation completed",
       audio: {
         id: audioId,
@@ -860,7 +888,12 @@ export async function POST(req: Request) {
         monthlyUploads: updatedMonthlyUploads,
         limit: uploadLimit,
       },
-    })
+    }
+    
+    console.log("Response data prepared, returning JSON...")
+    console.log("Response size estimate:", JSON.stringify(responseData).length, "chars")
+    
+    return NextResponse.json(responseData)
   } catch (error: any) {
     console.error("=== ERROR in audio generation API ===")
     console.error("Error type:", error?.constructor?.name)

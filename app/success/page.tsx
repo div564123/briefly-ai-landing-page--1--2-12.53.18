@@ -19,7 +19,32 @@ export default function SuccessPage() {
       // Try to verify and update subscription status
       const verifySubscription = async () => {
         try {
-          // Check current usage to see if tier was updated
+          // First, verify the Stripe session and upgrade if needed
+          const verifyResponse = await fetch("/api/checkout/verify-session", {
+            method: "POST",
+          })
+          
+          if (verifyResponse.ok) {
+            const verifyData = await verifyResponse.json()
+            if (verifyData.tier === "pro") {
+              console.log("✅ Subscription verified and upgraded to Pro")
+              // Wait a moment for database to update, then check usage
+              setTimeout(async () => {
+                const usageResponse = await fetch("/api/audio/usage")
+                if (usageResponse.ok) {
+                  const usageData = await usageResponse.json()
+                  if (usageData.tier === "pro") {
+                    setIsUpgrading(false)
+                    return
+                  }
+                }
+                setIsUpgrading(false)
+              }, 1000)
+              return
+            }
+          }
+          
+          // Fallback: Check current usage to see if tier was updated
           const response = await fetch("/api/audio/usage")
           if (response.ok) {
             const data = await response.json()

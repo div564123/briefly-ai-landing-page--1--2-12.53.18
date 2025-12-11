@@ -4,6 +4,7 @@ import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { Lock, Sparkles, Zap, Infinity as InfinityIcon, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
@@ -65,9 +66,9 @@ export function UpgradeBlocker({ open, onOpenChange, current, limit }: UpgradeBl
 
           {/* Title */}
           <div className="text-center space-y-2">
-            <h2 className="text-2xl font-bold text-foreground">
+            <DialogTitle className="text-2xl font-bold text-foreground">
               Monthly Limit Reached
-            </h2>
+            </DialogTitle>
             <p className="text-muted-foreground">
               You've used all {limit} of your monthly generations
             </p>

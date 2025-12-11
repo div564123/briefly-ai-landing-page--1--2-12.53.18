@@ -88,10 +88,25 @@ export default function DashboardPage() {
     extractText()
   }, [selectedFile])
 
-  // Fetch usage data
+  // Fetch usage data and verify subscription status
   useEffect(() => {
     const fetchUsage = async () => {
       try {
+        // First verify subscription status (updates tier if payment was made or subscription canceled)
+        try {
+          const verifyResponse = await fetch("/api/checkout/verify-session", { method: "POST" })
+          if (verifyResponse.ok) {
+            const verifyData = await verifyResponse.json()
+            // Update user plan if tier changed (e.g., subscription canceled)
+            if (verifyData.tier) {
+              setUserPlan(verifyData.tier)
+            }
+          }
+        } catch (error) {
+          // Ignore errors, just try to get usage
+        }
+        
+        // Then get usage data
         const response = await fetch("/api/audio/usage")
         if (response.ok) {
           const data = await response.json()
@@ -230,8 +245,8 @@ export default function DashboardPage() {
       return
     }
 
-    // Check usage limit before generating
-    if (usage && usage.remaining <= 0 && usage.limit !== Infinity) {
+    // Check usage limit before generating (only for Starter plan)
+    if (usage && usage.tier !== "pro" && usage.remaining <= 0 && usage.limit !== Infinity) {
       setShowUpgradeBlocker(true)
       return
     }
@@ -272,12 +287,28 @@ export default function DashboardPage() {
       formData.append("backgroundMusic", backgroundMusic)
       formData.append("customSummary", finalText) // Use textarea content (already translated if needed)
 
-      // Call the API
+      // Call the API with timeout
       console.log("🌐 Calling /api/audio/generate with custom summary...")
-      const response = await fetch("/api/audio/generate", {
-        method: "POST",
-        body: formData,
-      })
+      
+      // Create an AbortController for timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 300000) // 5 minutes timeout
+      
+      let response: Response
+      try {
+        response = await fetch("/api/audio/generate", {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        })
+        clearTimeout(timeoutId)
+      } catch (error: any) {
+        clearTimeout(timeoutId)
+        if (error.name === "AbortError") {
+          throw new Error("Request timed out. Audio generation is taking too long. Please try again.")
+        }
+        throw error
+      }
 
       console.log("📥 Response status:", response.status, response.statusText)
       console.log("📥 Content-Type:", response.headers.get("content-type"))
@@ -291,18 +322,32 @@ export default function DashboardPage() {
         throw new Error(`Server returned an error page. Status: ${response.status}. Check server logs for details.`)
       }
 
-      const data = await response.json()
-      console.log("📦 Response data:", data)
+      let data: any
+      try {
+        data = await response.json()
+        console.log("📦 Response data keys:", Object.keys(data))
+        console.log("📦 Has audioData:", !!data.audioData)
+        console.log("📦 Has audio.downloadUrl:", !!data.audio?.downloadUrl)
+        if (data.audioData) {
+          console.log("📦 audioData length:", data.audioData.length)
+        }
+      } catch (parseError) {
+        console.error("❌ Failed to parse JSON response:", parseError)
+        throw new Error("Failed to parse server response. The response may be too large.")
+      }
 
       if (!response.ok) {
         // Handle specific error cases
         if (response.status === 403) {
-          setShowUpgradeBlocker(true)
-          // Refresh usage to get latest count
-          const usageResponse = await fetch("/api/audio/usage")
-          if (usageResponse.ok) {
-            const usageData = await usageResponse.json()
-            setUsage(usageData)
+          // Only show blocker if user is not Pro
+          if (data.tier !== "pro" && userPlan !== "pro") {
+            setShowUpgradeBlocker(true)
+            // Refresh usage to get latest count
+            const usageResponse = await fetch("/api/audio/usage")
+            if (usageResponse.ok) {
+              const usageData = await usageResponse.json()
+              setUsage(usageData)
+            }
           }
           throw new Error(data.error || "Monthly upload limit reached. Please upgrade to Pro for unlimited uploads.")
         }
@@ -315,10 +360,26 @@ export default function DashboardPage() {
         throw new Error(data.error || "Failed to generate audio")
       }
 
-      // Success! Create audio file entry in local storage
-      if (data.audio?.downloadUrl) {
+      // Success! Handle audio response
+      if (data.audioData || data.audio?.downloadUrl) {
         const finalName = audioName || selectedFile.name.replace(/\.[^/.]+$/, "")
-        const newAudio = createAudioFile(finalName, folderId, data.audio.downloadUrl)
+        
+        // Create audio URL from base64 data if available
+        let audioUrl: string
+        if (data.audioData) {
+          // audioData is already a data URL (data:audio/mpeg;base64,...)
+          // Can be used directly in audio element
+          audioUrl = data.audioData
+          console.log("✅ Using audio data URL directly")
+        } else if (data.audio?.downloadUrl) {
+          audioUrl = data.audio.downloadUrl
+          console.log("✅ Using download URL")
+        } else {
+          throw new Error("No audio data or download URL provided")
+        }
+        
+        // Create audio file entry in local storage
+        const newAudio = createAudioFile(finalName, folderId, audioUrl)
         setAudioFiles(getAudioFiles(activeFolderId))
         setSelectedFile(null)
         setAvailableFolders(getFolders())
@@ -333,19 +394,14 @@ export default function DashboardPage() {
         
         // Show audio player instead of auto-downloading
         setRecentlyGeneratedAudio({
-          url: data.audio.downloadUrl,
+          url: audioUrl,
           name: finalName,
         })
         
         console.log("✅ Audio generated successfully!")
-        console.log("🔗 Download URL:", data.audio.downloadUrl)
-
-        // Clear pending data
-        setPendingSettings(null)
-        setPendingAudioName("")
-        setPendingFolderId(null)
+        console.log("🔗 Audio URL:", audioUrl)
       } else {
-        throw new Error("Audio generated but download URL is missing")
+        throw new Error("Audio generated but no audio data or download URL provided")
       }
     } catch (error) {
       console.error("❌ Audio generation error:", error)

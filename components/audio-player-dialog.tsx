@@ -5,6 +5,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { XIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AudioPlayer } from "@/components/audio-player"
+import { DialogTitle } from "@/components/ui/dialog"
 
 interface AudioPlayerDialogProps {
   open: boolean
@@ -44,6 +45,8 @@ export function AudioPlayerDialog({ open, onOpenChange, audioUrl, audioName }: A
               <XIcon className="h-4 w-4" />
               <span className="sr-only">Close</span>
             </DialogPrimitive.Close>
+            
+            <DialogTitle className="sr-only">Audio Player - {audioName}</DialogTitle>
             
             <AudioPlayer
               audioUrl={audioUrl}

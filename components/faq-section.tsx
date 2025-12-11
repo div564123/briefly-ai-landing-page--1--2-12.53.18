@@ -28,7 +28,7 @@ export default function FAQSection() {
     {
       question: "Is there an upload limit?",
       answer:
-        "It depends on your plan. The Starter plan allows 5 uploads per month, while Pro Action offers unlimited uploads.",
+        "It depends on your plan. The Starter plan allows 4 uploads per month, while Pro Action offers unlimited uploads.",
     },
     {
       question: "How do folders work?",

@@ -142,7 +142,19 @@ async function extractTextFromFile(file: File): Promise<string> {
                     if (textItem.R && textItem.R.length > 0) {
                       for (const run of textItem.R) {
                         if (run.T) {
-                          fullText += decodeURIComponent(run.T) + " "
+                          try {
+                            // Try to decode URI-encoded text
+                            fullText += decodeURIComponent(run.T) + " "
+                          } catch (decodeError) {
+                            // If decodeURIComponent fails (malformed URL), try to use the text as-is
+                            console.warn("Failed to decode PDF text, using raw text:", decodeError)
+                            try {
+                              fullText += run.T + " "
+                            } catch (fallbackError) {
+                              // If even that fails, skip this text item
+                              console.warn("Failed to extract text from PDF item, skipping:", fallbackError)
+                            }
+                          }
                         }
                       }
                     }
@@ -182,6 +194,15 @@ async function extractTextFromFile(file: File): Promise<string> {
     if (error.message.includes("empty") || error.message.includes("image")) {
       throw error
     }
+    
+    // Handle malformed PDF errors
+    if (error?.message?.includes("malformed") || 
+        error?.message?.includes("URI") || 
+        error?.message?.includes("decodeURIComponent") ||
+        error?.message?.includes("Invalid URI")) {
+      throw new Error("This PDF file appears to be corrupted or in an unsupported format. Please try converting it to a different PDF format or use a DOCX file instead.")
+    }
+    
     throw new Error(`Failed to extract text from file: ${error?.message || "Unknown error"}`)
   }
 }
