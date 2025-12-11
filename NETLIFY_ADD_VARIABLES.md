@@ -110,3 +110,4 @@ STRIPE_WEBHOOK_SECRET=whsec_votre-secret-webhook
    - Les erreurs devraient disparaître
 
 
+
