@@ -7,6 +7,7 @@
   },
   "scripts": {
     "build": "prisma generate && next build",
+    "postbuild": "prisma db push --skip-generate || true",
     "dev": "next dev --webpack",
     "lint": "eslint .",
     "start": "next start"

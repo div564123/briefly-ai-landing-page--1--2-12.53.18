@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma"
 
 export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === "development",
+  debug: false, // Disable debug mode to prevent /api/auth/_log errors
   pages: {
     signIn: "/login",
   },
@@ -20,11 +20,16 @@ export const authOptions = {
       if (user) {
         // Get user ID from database
         if (user.email) {
-          const dbUser = await prisma.user.findUnique({
-            where: { email: user.email },
-          })
-          if (dbUser) {
-            token.id = String(dbUser.id)
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { email: user.email },
+            })
+            if (dbUser) {
+              token.id = String(dbUser.id)
+            }
+          } catch (error) {
+            console.error("Error fetching user in jwt callback:", error)
+            // Continue without user ID if database query fails
           }
         } else {
           token.id = user.id
@@ -51,28 +56,33 @@ export const authOptions = {
           return null
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        })
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          })
 
-        if (!user) {
+          if (!user) {
+            return null
+          }
+
+          // Check if user has a password
+          if (!user.password) {
+            return null // User must have a password to sign in
+          }
+
+          const isValid = await bcrypt.compare(credentials.password, user.password)
+          if (!isValid) {
+            return null
+          }
+
+          return {
+            id: String(user.id),
+            name: user.name ?? undefined,
+            email: user.email,
+          }
+        } catch (error) {
+          console.error("Error in authorize callback:", error)
           return null
-        }
-
-        // Check if user has a password
-        if (!user.password) {
-          return null // User must have a password to sign in
-        }
-
-        const isValid = await bcrypt.compare(credentials.password, user.password)
-        if (!isValid) {
-          return null
-        }
-
-        return {
-          id: String(user.id),
-          name: user.name ?? undefined,
-          email: user.email,
         }
       },
     }),

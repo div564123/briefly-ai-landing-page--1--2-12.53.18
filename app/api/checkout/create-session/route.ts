@@ -76,7 +76,7 @@ export async function POST(req: Request) {
               name: "Capso AI Pro Action",
               description: "Unlimited uploads, voice speed control, background music, and audio organization",
             },
-            unit_amount: 0, // TEST MODE: €0.00 (change back to 899 for €8.99)
+            unit_amount: 899, // €8.99 in cents
             recurring: {
               interval: "month",
             },

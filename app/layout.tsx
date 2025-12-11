@@ -99,7 +99,7 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
-        {process.env.NODE_ENV === "production" && <Analytics />}
+        {process.env.NODE_ENV === "production" && process.env.VERCEL && <Analytics />}
       </body>
     </html>
   )
