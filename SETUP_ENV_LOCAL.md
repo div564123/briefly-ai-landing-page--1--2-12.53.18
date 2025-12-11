@@ -79,3 +79,4 @@ If your password contains special characters, URL-encode them:
 Password: `My@Pass#123`
 DATABASE_URL: `postgresql://postgres:My%40Pass%23123@db.eulpiddbrbqchwrkulug.supabase.co:5432/postgres`
 
+

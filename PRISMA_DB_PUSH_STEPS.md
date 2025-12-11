@@ -67,3 +67,4 @@ After tables are created:
 2. Redeploy your site on Netlify
 3. Test signup - it should work!
 
+

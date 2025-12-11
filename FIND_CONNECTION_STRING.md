@@ -54,3 +54,4 @@ Try this:
 2. Look for **Database URL** or **Connection string**
 3. Or check the **SQL Editor** - sometimes the connection info is shown there
 
+

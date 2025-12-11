@@ -136,3 +136,4 @@ If you've done all the steps above and still see the error:
 2. Share the error message from the logs
 3. Verify your Supabase database is running and accessible
 
+

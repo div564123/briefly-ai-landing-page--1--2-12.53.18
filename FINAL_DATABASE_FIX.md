@@ -166,3 +166,4 @@ Tell me:
 4. Whether tables exist in Supabase Table Editor
 5. Whether you've redeployed after adding DATABASE_URL
 
+

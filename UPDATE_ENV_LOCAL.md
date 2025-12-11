@@ -78,3 +78,4 @@ NEXTAUTH_URL=http://localhost:3000
 - **Replace the placeholder** with real password
 - **Save the file** after editing
 
+

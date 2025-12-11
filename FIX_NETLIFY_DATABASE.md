@@ -165,3 +165,4 @@ Partagez avec moi:
 3. Si les tables existent dans Supabase Table Editor
 4. Si vous avez redéployé après avoir ajouté DATABASE_URL
 
+
