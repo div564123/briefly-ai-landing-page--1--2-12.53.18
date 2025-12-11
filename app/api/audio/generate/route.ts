@@ -55,14 +55,20 @@ const USAGE_LIMITS = {
   pro: Infinity, // Unlimited uploads
 }
 
-// Initialize AI clients
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "",
-})
-
 // LemonFox API configuration (OpenAI-compatible)
 const LEMONFOX_API_URL = process.env.LEMONFOX_API_URL || "https://api.lemonfox.ai/v1/audio/speech"
 const LEMONFOX_API_KEY = process.env.LEMONFOX_API_KEY || ""
+
+/**
+ * Get OpenAI client instance (initialized inside function to avoid build-time errors)
+ */
+function getOpenAIClient(): OpenAI {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY is not configured")
+  }
+  return new OpenAI({ apiKey })
+}
 
 /**
  * Extract text from uploaded file (PDF, DOCX, or DOC)
@@ -193,6 +199,7 @@ async function translateText(text: string, targetLanguage: string): Promise<stri
 
     const targetLangName = languageNames[targetLanguage] || "English"
 
+    const openai = getOpenAIClient()
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -247,8 +254,17 @@ async function adjustPlaybackSpeed(audioBuffer: Buffer, speed: number): Promise<
     } catch (staticError: any) {
       // If ffmpeg-static fails, try @ffmpeg-installer/ffmpeg
       try {
+        // Use dynamic import to avoid build-time module resolution
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const ffmpegInstaller = require("@ffmpeg-installer/ffmpeg")
+        let ffmpegInstaller: any
+        try {
+          // Check if module exists before requiring
+          require.resolve("@ffmpeg-installer/ffmpeg")
+          ffmpegInstaller = require("@ffmpeg-installer/ffmpeg")
+        } catch (resolveError: any) {
+          // Module not found, skip
+          throw resolveError
+        }
         if (ffmpegInstaller && ffmpegInstaller.path) {
           ffmpeg.setFfmpegPath(ffmpegInstaller.path)
           console.log("✅ Using ffmpeg from @ffmpeg-installer")
@@ -362,8 +378,17 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
     } catch (staticError: any) {
       // If ffmpeg-static fails, try @ffmpeg-installer/ffmpeg
       try {
+        // Use dynamic import to avoid build-time module resolution
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const ffmpegInstaller = require("@ffmpeg-installer/ffmpeg")
+        let ffmpegInstaller: any
+        try {
+          // Check if module exists before requiring
+          require.resolve("@ffmpeg-installer/ffmpeg")
+          ffmpegInstaller = require("@ffmpeg-installer/ffmpeg")
+        } catch (resolveError: any) {
+          // Module not found, skip
+          throw resolveError
+        }
         if (ffmpegInstaller && ffmpegInstaller.path) {
           ffmpeg.setFfmpegPath(ffmpegInstaller.path)
           console.log("✅ Using ffmpeg from @ffmpeg-installer")
@@ -488,6 +513,7 @@ async function generateSummary(text: string, summaryLength: "short" | "medium" |
     // Use gpt-4o-mini for faster/cheaper responses, or gpt-4o for better quality
     const model = "gpt-4o-mini" // Change to "gpt-4o" for better quality
     
+    const openai = getOpenAIClient()
     const completion = await openai.chat.completions.create({
       model: model,
       messages: [

@@ -5,10 +5,16 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import OpenAI from "openai"
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "",
-})
+/**
+ * Get OpenAI client instance (initialized inside function to avoid build-time errors)
+ */
+function getOpenAIClient(): OpenAI {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY is not configured")
+  }
+  return new OpenAI({ apiKey })
+}
 
 /**
  * Generate summary from extracted text
@@ -35,6 +41,7 @@ ${text}
 Summary (with bold formatting for important parts):`
 
     const model = "gpt-4o-mini"
+    const openai = getOpenAIClient()
     const completion = await openai.chat.completions.create({
       model,
       messages: [
@@ -83,6 +90,7 @@ ${text}
 Translation:`
 
     const model = "gpt-4o-mini"
+    const openai = getOpenAIClient()
     const completion = await openai.chat.completions.create({
       model,
       messages: [

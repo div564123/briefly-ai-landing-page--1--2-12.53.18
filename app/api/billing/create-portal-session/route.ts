@@ -6,10 +6,6 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import Stripe from "stripe"
 import { prisma } from "@/lib/prisma"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2024-11-20.acacia",
-})
-
 export async function POST(req: Request) {
   try {
     // 1. Check Authentication
@@ -22,6 +18,11 @@ export async function POST(req: Request) {
     if (!process.env.STRIPE_SECRET_KEY) {
       return NextResponse.json({ error: "Stripe secret key is not configured" }, { status: 500 })
     }
+
+    // Initialize Stripe client inside handler to avoid build-time errors
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2024-11-20.acacia",
+    })
 
     // 2. Get user from database
     const user = await prisma.user.findUnique({

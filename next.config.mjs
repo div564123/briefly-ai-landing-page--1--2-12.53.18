@@ -19,6 +19,11 @@ const nextConfig = {
         '@ffmpeg-installer/ffmpeg': 'commonjs @ffmpeg-installer/ffmpeg',
         'fluent-ffmpeg': 'commonjs fluent-ffmpeg',
       })
+      
+      // Ignore @ffmpeg-installer/ffmpeg module resolution errors during build
+      // This allows the code to gracefully handle missing optional dependencies
+      config.resolve.fallback = config.resolve.fallback || {}
+      config.resolve.fallback['@ffmpeg-installer/ffmpeg'] = false
     }
     return config
   },
