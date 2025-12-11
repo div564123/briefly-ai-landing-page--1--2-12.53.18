@@ -14,43 +14,79 @@ export async function POST(req: Request) {
 
     // Check if DATABASE_URL is configured
     const databaseUrl = process.env.DATABASE_URL
+    console.log("🔍 DATABASE_URL check:", {
+      exists: !!databaseUrl,
+      length: databaseUrl?.length || 0,
+      startsWith: databaseUrl?.substring(0, 20) || "N/A",
+      isPlaceholder: databaseUrl?.includes("build:build@build:5432") || databaseUrl?.includes("placeholder:placeholder@localhost")
+    })
+    
     if (!databaseUrl) {
       console.error("❌ DATABASE_URL is not configured")
       return NextResponse.json({ 
-        error: "Database not configured. Please configure DATABASE_URL in your environment variables.",
-        details: "DATABASE_URL environment variable is missing. This is required for the application to work."
+        error: "Database not configured. Please add DATABASE_URL in Netlify dashboard.",
+        details: "Go to: Netlify Dashboard → Site settings → Build & deploy → Environment → Add variable: DATABASE_URL",
+        help: "See FIX_DATABASE_CONNECTION.md for detailed instructions"
       }, { status: 500 })
     }
 
     // Check if using build-time placeholder
     if (databaseUrl.includes("build:build@build:5432") || databaseUrl.includes("placeholder:placeholder@localhost")) {
-      console.error("❌ Using build-time placeholder DATABASE_URL. Real DATABASE_URL must be set in Netlify dashboard.")
+      console.error("❌ Using build-time placeholder DATABASE_URL:", databaseUrl.substring(0, 50) + "...")
       return NextResponse.json({ 
-        error: "Database not configured. Please set DATABASE_URL in Netlify dashboard (Site settings → Environment variables).",
-        details: "The build-time placeholder DATABASE_URL is being used. You must add the real PostgreSQL connection string in Netlify dashboard for the app to work."
+        error: "Database not configured. Please add REAL DATABASE_URL in Netlify dashboard.",
+        details: "The placeholder DATABASE_URL is being used. You MUST add your real PostgreSQL connection string in Netlify dashboard.",
+        instructions: [
+          "1. Go to app.netlify.com",
+          "2. Select your site → Site settings → Build & deploy → Environment",
+          "3. Click 'Add variable'",
+          "4. Key: DATABASE_URL",
+          "5. Value: postgresql://postgres:PASSWORD@db.xxxxx.supabase.co:5432/postgres",
+          "6. Click Save, then redeploy"
+        ]
       }, { status: 500 })
     }
 
     // Test database connection before proceeding
     try {
+      console.log("🔌 Attempting to connect to database...")
       await prisma.$connect()
+      console.log("✅ Database connection successful")
     } catch (dbError) {
       console.error("❌ Database connection failed:", dbError)
       const errorMessage = dbError instanceof Error ? dbError.message : String(dbError)
+      const errorCode = (dbError as any)?.code
+      
+      console.error("Error details:", {
+        code: errorCode,
+        message: errorMessage,
+        databaseUrl: databaseUrl ? `${databaseUrl.substring(0, 30)}...` : "N/A"
+      })
       
       // Check for specific connection errors
-      if (errorMessage.includes("Can't reach database server") || 
+      if (errorCode === "P1001" || 
+          errorMessage.includes("Can't reach database server") || 
           errorMessage.includes("connect ECONNREFUSED") ||
-          errorMessage.includes("ENOTFOUND")) {
+          errorMessage.includes("ENOTFOUND") ||
+          errorMessage.includes("getaddrinfo")) {
         return NextResponse.json({ 
-          error: "Cannot connect to database. Please check your DATABASE_URL configuration.",
-          details: "The database server is not reachable. Verify that your DATABASE_URL is correct and the database is accessible."
+          error: "Cannot connect to database server.",
+          details: "The database server is not reachable. Please verify:",
+          checklist: [
+            "✓ DATABASE_URL is set in Netlify dashboard (not netlify.toml)",
+            "✓ DATABASE_URL format is correct: postgresql://user:password@host:5432/dbname",
+            "✓ Database password is correct (no special characters need URL encoding)",
+            "✓ Database server is accessible from internet (Supabase/Neon should be accessible)",
+            "✓ You redeployed after adding DATABASE_URL"
+          ],
+          help: "See FIX_DATABASE_CONNECTION.md for step-by-step instructions"
         }, { status: 500 })
       }
       
       return NextResponse.json({ 
         error: "Cannot connect to database. Please check your DATABASE_URL configuration.",
-        details: process.env.NODE_ENV === "development" ? errorMessage : "Database connection failed"
+        details: process.env.NODE_ENV === "development" ? errorMessage : "Database connection failed. Check Netlify function logs for details.",
+        errorCode: errorCode || "UNKNOWN"
       }, { status: 500 })
     }
 
