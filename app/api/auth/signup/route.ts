@@ -16,8 +16,20 @@ export async function POST(req: Request) {
     if (!process.env.DATABASE_URL) {
       console.error("❌ DATABASE_URL is not configured")
       return NextResponse.json({ 
-        error: "Database configuration error. Please contact support.",
-        details: "DATABASE_URL environment variable is missing"
+        error: "Database not configured. Please configure DATABASE_URL in your environment variables.",
+        details: "DATABASE_URL environment variable is missing. This is required for the application to work."
+      }, { status: 500 })
+    }
+
+    // Test database connection before proceeding
+    try {
+      await prisma.$connect()
+    } catch (dbError) {
+      console.error("❌ Database connection failed:", dbError)
+      const errorMessage = dbError instanceof Error ? dbError.message : String(dbError)
+      return NextResponse.json({ 
+        error: "Cannot connect to database. Please check your DATABASE_URL configuration.",
+        details: process.env.NODE_ENV === "development" ? errorMessage : "Database connection failed"
       }, { status: 500 })
     }
 

@@ -10,9 +10,26 @@ if (!process.env.NEXTAUTH_SECRET) {
   console.error("⚠️ NEXTAUTH_SECRET is not set. Authentication may not work correctly.")
 }
 
+// Check for required environment variables
+if (!process.env.NEXTAUTH_SECRET) {
+  console.error("⚠️ NEXTAUTH_SECRET is not set. Authentication may not work correctly.")
+}
+
+if (!process.env.DATABASE_URL) {
+  console.error("⚠️ DATABASE_URL is not set. Database operations will fail.")
+}
+
 export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET || "fallback-secret-change-in-production",
   debug: false, // Disable debug mode to prevent /api/auth/_log errors
+  logger: {
+    error(code: string, metadata: any) {
+      // Only log errors, not debug info
+      if (code !== "FETCH_ERROR") {
+        console.error("NextAuth error:", code, metadata)
+      }
+    },
+  },
   pages: {
     signIn: "/login",
   },
@@ -26,6 +43,12 @@ export const authOptions = {
         // Get user ID from database
         if (user.email) {
           try {
+            // Check if DATABASE_URL is configured before querying
+            if (!process.env.DATABASE_URL) {
+              console.error("DATABASE_URL not configured, skipping user lookup")
+              return token
+            }
+            
             const dbUser = await prisma.user.findUnique({
               where: { email: user.email },
             })
