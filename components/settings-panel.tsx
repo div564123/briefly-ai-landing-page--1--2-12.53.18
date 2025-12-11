@@ -323,14 +323,35 @@ export function SettingsPanel({
           )}
         </Card>
 
-        {/* Updated Button */}
+        {/* Updated Button with Cool Loading Animation */}
         <Button
           size="lg"
-          className="w-full text-base font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+          className={cn(
+            "w-full text-base font-semibold relative overflow-hidden transition-all duration-300",
+            isGenerating 
+              ? "bg-gradient-to-r from-primary via-primary/90 to-primary/80 cursor-wait" 
+              : "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
+            (!selectedFile || isGenerating) && "opacity-90"
+          )}
           onClick={handleGenerate}
           disabled={!selectedFile || isGenerating}
         >
-          {isGenerating ? "Generating Audio..." : "Generate Audio"}
+          {isGenerating && (
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_infinite]"></div>
+          )}
+          <span className="relative flex items-center justify-center gap-2">
+            {isGenerating ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="animate-pulse">Generating Audio...</span>
+              </>
+            ) : (
+              <>
+                <Volume2 className="w-5 h-5" />
+                <span>Generate Audio</span>
+              </>
+            )}
+          </span>
         </Button>
       </div>
     </div>
