@@ -3,7 +3,7 @@
   publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps"
   # Placeholder DATABASE_URL for build-time (prisma generate doesn't need real DB)
   # You still need to set the real DATABASE_URL in Netlify dashboard for runtime
