@@ -5,8 +5,13 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 
+// Validate required environment variables
+if (!process.env.NEXTAUTH_SECRET) {
+  console.error("⚠️ NEXTAUTH_SECRET is not set. Authentication may not work correctly.")
+}
+
 export const authOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "fallback-secret-change-in-production",
   debug: false, // Disable debug mode to prevent /api/auth/_log errors
   pages: {
     signIn: "/login",
@@ -38,10 +43,16 @@ export const authOptions = {
       return token
     },
     async session({ session, token }) {
-      if (session.user) {
-        (session.user as any).id = token.id
+      try {
+        if (session.user) {
+          (session.user as any).id = token.id
+        }
+        return session
+      } catch (error) {
+        console.error("Error in session callback:", error)
+        // Return session even if there's an error
+        return session
       }
-      return session
     },
   },
   providers: [

@@ -1,7 +1,6 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
 import { Providers } from "@/components/providers"
 import "./globals.css"
 
@@ -99,7 +98,6 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
-        {process.env.NODE_ENV === "production" && process.env.VERCEL && <Analytics />}
       </body>
     </html>
   )
