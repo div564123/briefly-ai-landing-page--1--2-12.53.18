@@ -137,3 +137,4 @@ If you've done all the steps above and still see the error:
 3. Verify your Supabase database is running and accessible
 
 
+

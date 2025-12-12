@@ -68,3 +68,4 @@ DATABASE_URL: `postgresql://postgres:My%40Pass%23123@db.eulpiddbrbqchwrkulug.sup
 Once you add DATABASE_URL to Netlify and redeploy, the error will be fixed!
 
 
+

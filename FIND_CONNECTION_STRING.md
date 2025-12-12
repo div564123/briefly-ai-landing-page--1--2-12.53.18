@@ -55,3 +55,4 @@ Try this:
 3. Or check the **SQL Editor** - sometimes the connection info is shown there
 
 
+

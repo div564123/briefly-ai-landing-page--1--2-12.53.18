@@ -68,3 +68,4 @@ After tables are created:
 3. Test signup - it should work!
 
 
+

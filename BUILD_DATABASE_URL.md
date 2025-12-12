@@ -89,3 +89,4 @@ If you want to find the connection string directly in Supabase:
 But if you can't find it, building it manually works perfectly!
 
 
+
