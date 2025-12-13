@@ -652,7 +652,7 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
       console.log(`✅ Music file verified: ${musicFileStats.size} bytes at ${musicPath}`)
 
       // Mix audio using ffmpeg
-      // Speech volume: 0.7 (70%), Music volume: 0.3 (30%) - Increased for more audible background
+      // Speech volume: 0.7 (70%), Music volume: 0.2 (20%) - Balanced background music
       console.log(`🎬 Starting FFmpeg mixing process...`)
       console.log(`   Input 1 (speech): ${speechPath}`)
       console.log(`   Input 2 (music): ${musicPath}`)
@@ -667,7 +667,7 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
           .input(musicPath)
           .complexFilter([
             "[0:a]volume=0.7[speech]",
-            "[1:a]volume=0.3,aloop=loop=-1:size=2e+09[music]",
+            "[1:a]volume=0.2,aloop=loop=-1:size=2e+09[music]",
             "[speech][music]amix=inputs=2:duration=first:dropout_transition=2[mixed]"
           ])
           .outputOptions(["-map", "[mixed]"])
@@ -992,30 +992,34 @@ async function generateAudio(
 /**
  * Map voice name from settings panel to LemonFox voice ID
  * Settings panel uses: sarah, emma, olivia, james, liam, noah
- * LemonFox voices - adjust these based on available voices in your LemonFox account
+ * LemonFox uses OpenAI-compatible voice IDs with proper gender mapping
  */
 function getVoiceIdFromTone(voiceName: string): string {
   const voiceMap: Record<string, string> = {
-    // Settings panel voice names -> LemonFox voices
-    // LemonFox has 50+ voices - using common voice names
-    sarah: "sarah", // Clear & Professional (LemonFox example voice)
-    emma: "emma", // Warm & Friendly
-    olivia: "olivia", // Energetic & Young
-    james: "james", // Deep & Authoritative
-    liam: "liam", // Calm & Soothing
-    noah: "noah", // Confident & Clear
+    // Female voices (LemonFox/OpenAI compatible)
+    sarah: "alloy", // Clear & Professional (female)
+    emma: "echo", // Warm & Friendly (female)
+    olivia: "nova", // Energetic & Young (female)
+    
+    // Male voices (LemonFox/OpenAI compatible)
+    james: "onyx", // Deep & Authoritative (male)
+    liam: "onyx", // Calm & Soothing (male) - using onyx as it's the main male voice
+    noah: "onyx", // Confident & Clear (male) - using onyx as it's the main male voice
+    
+    // Alternative female voices if available
+    // You can also try: "fable", "shimmer" for more variety
     
     // Legacy tone names (for backwards compatibility)
-    professional: "sarah",
-    warm: "emma",
-    energetic: "olivia",
-    calm: "liam",
-    authoritative: "james",
-    clear: "noah",
+    professional: "alloy", // sarah
+    warm: "echo", // emma
+    energetic: "nova", // olivia
+    calm: "onyx", // liam
+    authoritative: "onyx", // james
+    clear: "onyx", // noah
   }
 
-  // Default to "heart" (LemonFox's default voice)
-  return voiceMap[voiceName.toLowerCase()] || "heart"
+  // Default to "alloy" (female, professional voice)
+  return voiceMap[voiceName.toLowerCase()] || "alloy"
 }
 
 export async function POST(req: Request) {
