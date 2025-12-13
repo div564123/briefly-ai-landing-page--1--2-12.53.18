@@ -652,7 +652,7 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
       console.log(`✅ Music file verified: ${musicFileStats.size} bytes at ${musicPath}`)
 
       // Mix audio using ffmpeg
-      // Speech volume: 0.7 (70%), Music volume: 0.2 (20%) - Balanced background music
+      // Speech volume: 0.7 (70%), Music volume: 0.15 (15%) - Subtle background music
       console.log(`🎬 Starting FFmpeg mixing process...`)
       console.log(`   Input 1 (speech): ${speechPath}`)
       console.log(`   Input 2 (music): ${musicPath}`)
@@ -667,7 +667,7 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
           .input(musicPath)
           .complexFilter([
             "[0:a]volume=0.7[speech]",
-            "[1:a]volume=0.2,aloop=loop=-1:size=2e+09[music]",
+            "[1:a]volume=0.15,aloop=loop=-1:size=2e+09[music]",
             "[speech][music]amix=inputs=2:duration=first:dropout_transition=2[mixed]"
           ])
           .outputOptions(["-map", "[mixed]"])
