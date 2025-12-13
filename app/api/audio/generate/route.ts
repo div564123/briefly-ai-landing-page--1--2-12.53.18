@@ -415,6 +415,43 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
     // Note: fluent-ffmpeg doesn't have getFfmpegPath() method
     // We'll rely on fluent-ffmpeg to handle FFmpeg path resolution
     // If FFmpeg is not available, the error will be caught in the mixing process
+    
+    // Try to verify FFmpeg is available by checking if we can get version
+    // This is a basic check to ensure FFmpeg is accessible
+    try {
+      const { execSync } = require("child_process")
+      let ffmpegPath = null
+      
+      // Try to find ffmpeg path from fluent-ffmpeg
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const ffmpegStatic = require("ffmpeg-static")
+        if (ffmpegStatic) {
+          ffmpegPath = ffmpegStatic
+        }
+      } catch {
+        // Try @ffmpeg-installer
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const ffmpegInstaller = require("@ffmpeg-installer/ffmpeg")
+          if (ffmpegInstaller?.path) {
+            ffmpegPath = ffmpegInstaller.path
+          }
+        } catch {
+          // Use system ffmpeg
+          ffmpegPath = "ffmpeg"
+        }
+      }
+      
+      if (ffmpegPath && existsSync(ffmpegPath)) {
+        console.log(`✅ FFmpeg verified at: ${ffmpegPath}`)
+      } else {
+        console.log(`⚠️  FFmpeg path not verified, will attempt to use anyway: ${ffmpegPath || "system ffmpeg"}`)
+      }
+    } catch (verifyError: any) {
+      console.log(`⚠️  Could not verify FFmpeg, will attempt mixing anyway: ${verifyError.message}`)
+    }
+    
     console.log("✅ FFmpeg setup complete, will attempt mixing")
 
     // Map music type to file path
@@ -539,12 +576,32 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
       // Write speech audio to temp file
       console.log(`📝 Writing speech audio to temp file: ${speechPath} (${speechAudio.length} bytes)`)
       await writeFile(speechPath, speechAudio)
-      console.log(`📝 Speech audio written to temp file: ${speechPath}`)
-      console.log(`🎵 Music file path: ${musicPath}`)
+      
+      // Verify file was written
+      if (!existsSync(speechPath)) {
+        throw new Error(`Failed to write speech audio file: ${speechPath}`)
+      }
+      const speechFileStats = await import("fs/promises").then(m => m.stat(speechPath))
+      console.log(`✅ Speech audio written successfully: ${speechFileStats.size} bytes at ${speechPath}`)
+      
+      // Verify music file exists
+      if (!existsSync(musicPath)) {
+        throw new Error(`Music file does not exist: ${musicPath}`)
+      }
+      const musicFileStats = await import("fs/promises").then(m => m.stat(musicPath))
+      console.log(`✅ Music file verified: ${musicFileStats.size} bytes at ${musicPath}`)
 
       // Mix audio using ffmpeg
       // Speech volume: 0.7 (70%), Music volume: 0.3 (30%) - Increased for more audible background
+      console.log(`🎬 Starting FFmpeg mixing process...`)
+      console.log(`   Input 1 (speech): ${speechPath}`)
+      console.log(`   Input 2 (music): ${musicPath}`)
+      console.log(`   Output: ${outputPath}`)
+      
       await new Promise<void>((resolve, reject) => {
+        let ffmpegStarted = false
+        let ffmpegEnded = false
+        
         const ffmpegProcess = ffmpeg()
           .input(speechPath)
           .input(musicPath)
@@ -556,38 +613,79 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
           .outputOptions(["-map", "[mixed]"])
           .output(outputPath)
           .on("start", (commandLine: string) => {
-            console.log(`🎬 FFmpeg command: ${commandLine}`)
+            ffmpegStarted = true
+            console.log(`🎬 FFmpeg started successfully`)
+            console.log(`🎬 FFmpeg command: ${commandLine.substring(0, 200)}...`)
           })
           .on("end", () => {
-            console.log("✅ Audio mixing completed")
+            ffmpegEnded = true
+            console.log("✅ Audio mixing completed successfully")
             resolve()
           })
           .on("error", (err: Error) => {
-            console.error("❌ FFmpeg error:", err)
+            console.error("❌ FFmpeg error occurred:", err)
             console.error("Error details:", {
               message: err.message,
+              code: (err as any).code,
+              errno: (err as any).errno,
+              syscall: (err as any).syscall,
+              path: (err as any).path,
               stack: err.stack,
+              ffmpegStarted: ffmpegStarted,
+              ffmpegEnded: ffmpegEnded,
               speechPath: speechPath,
               musicPath: musicPath,
               outputPath: outputPath,
             })
+            
+            // Check if files still exist
+            console.log(`File existence check:`)
+            console.log(`   Speech file exists: ${existsSync(speechPath)}`)
+            console.log(`   Music file exists: ${existsSync(musicPath)}`)
+            console.log(`   Output file exists: ${existsSync(outputPath)}`)
+            
             reject(err)
           })
           .on("stderr", (stderrLine: string) => {
             // FFmpeg outputs progress to stderr, we can ignore most of it
             if (stderrLine.includes("error") || stderrLine.includes("Error") || stderrLine.includes("failed")) {
-              console.error("FFmpeg stderr:", stderrLine)
+              console.error("FFmpeg stderr error:", stderrLine)
             } else if (stderrLine.includes("Duration") || stderrLine.includes("time=")) {
               // Log progress for debugging
               console.log("FFmpeg progress:", stderrLine.trim())
             }
           })
           .run()
+          
+        // Add timeout to prevent hanging
+        setTimeout(() => {
+          if (!ffmpegEnded && !ffmpegStarted) {
+            console.error("❌ FFmpeg process timeout - process did not start")
+            reject(new Error("FFmpeg process timeout: process did not start within 5 seconds"))
+          } else if (!ffmpegEnded && ffmpegStarted) {
+            console.error("❌ FFmpeg process timeout - process started but did not complete")
+            reject(new Error("FFmpeg process timeout: process started but did not complete within 30 seconds"))
+          }
+        }, 30000) // 30 second timeout
       })
 
+      // Verify output file exists before reading
+      if (!existsSync(outputPath)) {
+        throw new Error(`Output file was not created: ${outputPath}`)
+      }
+      const outputFileStats = await import("fs/promises").then(m => m.stat(outputPath))
+      console.log(`✅ Output file created: ${outputFileStats.size} bytes at ${outputPath}`)
+      
       // Read mixed audio
       const mixedAudio = await readFile(outputPath)
-      console.log(`✅ Mixed audio created: ${mixedAudio.length} bytes`)
+      console.log(`✅ Mixed audio read successfully: ${mixedAudio.length} bytes`)
+      
+      // Verify mixed audio is different from original (should be larger)
+      if (mixedAudio.length <= speechAudio.length) {
+        console.warn(`⚠️  Mixed audio size (${mixedAudio.length}) is not larger than original (${speechAudio.length}). Mixing may have failed.`)
+      } else {
+        console.log(`✅ Mixed audio is larger than original (${mixedAudio.length} vs ${speechAudio.length}), mixing successful!`)
+      }
 
       // Cleanup temp files
       await unlink(speechPath).catch(() => {})
