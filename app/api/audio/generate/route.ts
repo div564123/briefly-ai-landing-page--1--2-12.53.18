@@ -378,43 +378,103 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
     console.log("✅ fluent-ffmpeg loaded successfully")
     
     // Try to set ffmpeg path - use ffmpeg-static if available, otherwise try system ffmpeg
+    let ffmpegPathSet = false
+    
+    // Detect Netlify environment
+    const isNetlifyEnv = !!(
+      process.env.NETLIFY || 
+      process.env.NETLIFY_DEV || 
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.AWS_EXECUTION_ENV ||
+      process.cwd().includes("/var/task") ||
+      process.cwd().includes("/opt/build")
+    )
+    
     try {
       // Try ffmpeg-static first (better Next.js compatibility)
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const ffmpegStatic = require("ffmpeg-static")
-      if (ffmpegStatic) {
-        ffmpeg.setFfmpegPath(ffmpegStatic)
-        console.log("✅ Using ffmpeg from ffmpeg-static")
+      if (ffmpegStatic && existsSync(ffmpegStatic)) {
+        if (isNetlifyEnv) {
+          // On Netlify, copy FFmpeg binary to /tmp and make it executable
+          // This is necessary because binaries in node_modules may not be executable
+          const { copyFileSync, chmodSync } = require("fs")
+          const tmpFfmpegPath = "/tmp/ffmpeg"
+          
+          try {
+            console.log(`📦 Copying FFmpeg binary from ${ffmpegStatic} to ${tmpFfmpegPath}...`)
+            copyFileSync(ffmpegStatic, tmpFfmpegPath)
+            chmodSync(tmpFfmpegPath, 0o755) // Make executable (rwxr-xr-x)
+            ffmpeg.setFfmpegPath(tmpFfmpegPath)
+            console.log(`✅ Using ffmpeg from ffmpeg-static (copied to ${tmpFfmpegPath})`)
+            ffmpegPathSet = true
+          } catch (copyError: any) {
+            console.log(`⚠️  Failed to copy ffmpeg to /tmp: ${copyError.message}`)
+            console.log(`   Trying original path: ${ffmpegStatic}`)
+            // Try original path anyway
+            ffmpeg.setFfmpegPath(ffmpegStatic)
+            console.log("✅ Using ffmpeg from ffmpeg-static (original path)")
+            ffmpegPathSet = true
+          }
+        } else {
+          // Local development - use original path
+          ffmpeg.setFfmpegPath(ffmpegStatic)
+          console.log("✅ Using ffmpeg from ffmpeg-static")
+          ffmpegPathSet = true
+        }
+      } else {
+        console.log(`⚠️  ffmpeg-static path does not exist: ${ffmpegStatic}`)
       }
     } catch (staticError: any) {
-      // If ffmpeg-static fails, try @ffmpeg-installer/ffmpeg
+      console.log(`⚠️  ffmpeg-static not available: ${staticError.message}`)
+    }
+    
+    // If ffmpeg-static didn't work, try @ffmpeg-installer/ffmpeg
+    if (!ffmpegPathSet) {
       try {
-        // Use dynamic import to avoid build-time module resolution
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         let ffmpegInstaller: any
         try {
-          // Check if module exists before requiring
           require.resolve("@ffmpeg-installer/ffmpeg")
           ffmpegInstaller = require("@ffmpeg-installer/ffmpeg")
         } catch (resolveError: any) {
-          // Module not found, skip
           throw resolveError
         }
-        if (ffmpegInstaller && ffmpegInstaller.path) {
-          ffmpeg.setFfmpegPath(ffmpegInstaller.path)
-          console.log("✅ Using ffmpeg from @ffmpeg-installer")
+        if (ffmpegInstaller && ffmpegInstaller.path && existsSync(ffmpegInstaller.path)) {
+          if (isNetlifyEnv) {
+            // On Netlify, copy to /tmp
+            const { copyFileSync, chmodSync } = require("fs")
+            const tmpFfmpegPath = "/tmp/ffmpeg"
+            try {
+              console.log(`📦 Copying FFmpeg binary from ${ffmpegInstaller.path} to ${tmpFfmpegPath}...`)
+              copyFileSync(ffmpegInstaller.path, tmpFfmpegPath)
+              chmodSync(tmpFfmpegPath, 0o755)
+              ffmpeg.setFfmpegPath(tmpFfmpegPath)
+              console.log(`✅ Using ffmpeg from @ffmpeg-installer (copied to ${tmpFfmpegPath})`)
+              ffmpegPathSet = true
+            } catch (copyError: any) {
+              console.log(`⚠️  Failed to copy ffmpeg to /tmp: ${copyError.message}`)
+              ffmpeg.setFfmpegPath(ffmpegInstaller.path)
+              console.log("✅ Using ffmpeg from @ffmpeg-installer (original path)")
+              ffmpegPathSet = true
+            }
+          } else {
+            ffmpeg.setFfmpegPath(ffmpegInstaller.path)
+            console.log("✅ Using ffmpeg from @ffmpeg-installer")
+            ffmpegPathSet = true
+          }
         }
       } catch (installerError: any) {
-        // If both fail, try to use system ffmpeg
-        console.log("⚠️  FFmpeg packages not available, trying system ffmpeg")
-        // System ffmpeg should be in PATH, fluent-ffmpeg will find it automatically
-        // If system ffmpeg is not available, the error will be caught below
+        console.log(`⚠️  @ffmpeg-installer not available: ${installerError.message}`)
       }
     }
-
-    // Note: fluent-ffmpeg doesn't have getFfmpegPath() method
-    // We'll rely on fluent-ffmpeg to handle FFmpeg path resolution
-    // If FFmpeg is not available, the error will be caught in the mixing process
+    
+    // If both packages failed, try system ffmpeg
+    if (!ffmpegPathSet) {
+      console.log("⚠️  FFmpeg packages not available, trying system ffmpeg")
+      // System ffmpeg should be in PATH, fluent-ffmpeg will find it automatically
+      // If system ffmpeg is not available, the error will be caught below
+    }
     
     // Try to verify FFmpeg is available by checking if we can get version
     // This is a basic check to ensure FFmpeg is accessible
