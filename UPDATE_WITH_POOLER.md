@@ -129,3 +129,5 @@ postgresql://postgres.eulpiddbrbqchwrkulug:YOUR_REAL_PASSWORD@aws-1-eu-west-1.po
 - ✅ Uses `postgres.xxxxx` format (not just `postgres`)
 - ✅ Compatible with IPv4 (works on Netlify)
 
+
+

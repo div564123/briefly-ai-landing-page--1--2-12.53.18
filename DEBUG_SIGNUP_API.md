@@ -110,3 +110,5 @@ Share with me:
 2. Whether DATABASE_URL is in Netlify dashboard
 3. Whether tables exist in Supabase Table Editor
 
+
+

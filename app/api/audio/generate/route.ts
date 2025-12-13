@@ -401,25 +401,53 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
       }
     }
 
-    // Map music type to file path
-    const musicFiles: Record<string, string> = {
-      "calm-piano": join(process.cwd(), "public", "background-music", "calm-piano.mp3"),
-      "ambient-sounds": join(process.cwd(), "public", "background-music", "ambient-sounds.mp3"),
-      "soft-jazz": join(process.cwd(), "public", "background-music", "soft-jazz.mp3"),
-      "nature-sounds": join(process.cwd(), "public", "background-music", "nature-sounds.mp3"),
-      "lo-fi-beats": join(process.cwd(), "public", "background-music", "lo-fi-beats.mp3"),
+    // Verify FFmpeg is accessible by checking the path
+    const finalFfmpegPath = ffmpeg.getFfmpegPath()
+    if (finalFfmpegPath) {
+      if (!existsSync(finalFfmpegPath)) {
+        console.error(`❌ FFmpeg path set but file does not exist: ${finalFfmpegPath}`)
+        console.error("💡 Background music mixing will fail. FFmpeg is required for mixing.")
+        return speechAudio
+      } else {
+        console.log(`✅ FFmpeg verified at: ${finalFfmpegPath}`)
+      }
+    } else {
+      console.log("⚠️  FFmpeg path not set, will try to use system ffmpeg")
     }
 
-    const musicPath = musicFiles[musicType]
+    // Map music type to file path
+    // On Netlify, try multiple possible paths for the public folder
+    const getMusicPath = (musicFileName: string): string | null => {
+      const possiblePaths = [
+        // Standard Next.js path
+        join(process.cwd(), "public", "background-music", musicFileName),
+        // Netlify build path (sometimes different)
+        join(process.cwd(), ".next", "server", "app", "public", "background-music", musicFileName),
+        // Alternative Netlify path
+        join("/var/task", "public", "background-music", musicFileName),
+        // Fallback: try without process.cwd()
+        join("public", "background-music", musicFileName),
+      ]
+
+      for (const path of possiblePaths) {
+        if (existsSync(path)) {
+          console.log(`✅ Found music file at: ${path}`)
+          return path
+        }
+      }
+
+      // Log all attempted paths for debugging
+      console.warn(`❌ Music file not found: ${musicFileName}`)
+      console.log("Attempted paths:")
+      possiblePaths.forEach((p) => console.log(`  - ${p}`))
+      console.log(`Current working directory: ${process.cwd()}`)
+      return null
+    }
+
+    const musicPath = getMusicPath(`${musicType}.mp3`)
     
     if (!musicPath) {
       console.warn(`Background music file not found for: ${musicType}`)
-      return speechAudio
-    }
-
-    // Check if music file exists
-    if (!existsSync(musicPath)) {
-      console.warn(`Background music file does not exist: ${musicPath}`)
       console.log("💡 Add background music files to public/background-music/")
       console.log("   See BACKGROUND_MUSIC_LANGUAGE_SETUP.md for free music sources")
       return speechAudio
@@ -437,14 +465,20 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
     const outputPath = join(tempDir, `mixed-${randomUUID()}.mp3`)
 
     try {
+      // Verify FFmpeg path is set
+      const ffmpegPath = ffmpeg.getFfmpegPath()
+      console.log(`🎬 FFmpeg path: ${ffmpegPath || "Not set (using system ffmpeg)"}`)
+      console.log(`✅ Music file exists and is accessible: ${musicPath}`)
+
       // Write speech audio to temp file
       await writeFile(speechPath, speechAudio)
       console.log(`📝 Speech audio written to temp file: ${speechPath}`)
+      console.log(`🎵 Music file path: ${musicPath}`)
 
       // Mix audio using ffmpeg
       // Speech volume: 0.7 (70%), Music volume: 0.15 (15%) - Reduced for less loud background
       await new Promise<void>((resolve, reject) => {
-        ffmpeg()
+        const ffmpegProcess = ffmpeg()
           .input(speechPath)
           .input(musicPath)
           .complexFilter([
@@ -454,18 +488,32 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
           ])
           .outputOptions(["-map", "[mixed]"])
           .output(outputPath)
+          .on("start", (commandLine: string) => {
+            console.log(`🎬 FFmpeg command: ${commandLine}`)
+          })
           .on("end", () => {
             console.log("✅ Audio mixing completed")
             resolve()
           })
           .on("error", (err: Error) => {
             console.error("❌ FFmpeg error:", err)
+            console.error("Error details:", {
+              message: err.message,
+              stack: err.stack,
+              ffmpegPath: ffmpegPath,
+              speechPath: speechPath,
+              musicPath: musicPath,
+              outputPath: outputPath,
+            })
             reject(err)
           })
           .on("stderr", (stderrLine: string) => {
             // FFmpeg outputs progress to stderr, we can ignore most of it
-            if (stderrLine.includes("error") || stderrLine.includes("Error")) {
+            if (stderrLine.includes("error") || stderrLine.includes("Error") || stderrLine.includes("failed")) {
               console.error("FFmpeg stderr:", stderrLine)
+            } else if (stderrLine.includes("Duration") || stderrLine.includes("time=")) {
+              // Log progress for debugging
+              console.log("FFmpeg progress:", stderrLine.trim())
             }
           })
           .run()

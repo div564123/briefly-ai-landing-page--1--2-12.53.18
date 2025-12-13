@@ -103,3 +103,5 @@ npx prisma db push --schema=./prisma/schema.prisma
 - [ ] `npx prisma db push` runs successfully
 - [ ] Tables exist in Supabase Table Editor
 
+
+

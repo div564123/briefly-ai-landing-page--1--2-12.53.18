@@ -85,3 +85,5 @@ For `npx prisma db push`, Prisma uses `.env` file.
 - [ ] Tables visible in Supabase Table Editor
 - [ ] Tested signup - should work now!
 
+
+
