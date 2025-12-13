@@ -3,6 +3,7 @@
 import { Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "@/lib/theme-provider"
+import { AudioHistory } from "@/components/audio-history"
 
 export function DashboardHeader() {
   const { theme, toggleTheme } = useTheme()
@@ -15,10 +16,13 @@ export function DashboardHeader() {
           <p className="text-sm text-muted-foreground">Ready to create your next audio summary</p>
         </div>
 
-        <Button variant="outline" size="icon" onClick={toggleTheme} className="h-9 w-9 bg-transparent">
-          {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-          <span className="sr-only">Toggle theme</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <AudioHistory />
+          <Button variant="outline" size="icon" onClick={toggleTheme} className="h-9 w-9 bg-transparent">
+            {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+        </div>
       </div>
     </header>
   )
