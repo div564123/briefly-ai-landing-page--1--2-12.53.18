@@ -361,10 +361,12 @@ async function adjustPlaybackSpeed(audioBuffer: Buffer, speed: number): Promise<
  * Mix background music with speech audio using ffmpeg
  */
 async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promise<Buffer> {
+  console.log(`🎵 mixBackgroundMusic called with musicType: "${musicType}", speechAudio size: ${speechAudio.length} bytes`)
   try {
     // Lazy load ffmpeg to avoid top-level errors
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const ffmpeg = require("fluent-ffmpeg")
+    console.log("✅ fluent-ffmpeg loaded successfully")
     
     // Try to set ffmpeg path - use ffmpeg-static if available, otherwise try system ffmpeg
     try {
@@ -444,13 +446,45 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
       return null
     }
 
-    const musicPath = getMusicPath(`${musicType}.mp3`)
+    let musicPath = getMusicPath(`${musicType}.mp3`)
+    let musicNeedsDownload = false
     
+    // If file not found on filesystem, try to download from public URL (Netlify CDN)
     if (!musicPath) {
-      console.warn(`Background music file not found for: ${musicType}`)
-      console.log("💡 Add background music files to public/background-music/")
-      console.log("   See BACKGROUND_MUSIC_LANGUAGE_SETUP.md for free music sources")
-      return speechAudio
+      console.log(`⚠️  Music file not found on filesystem, trying to download from public URL...`)
+      // Get base URL - prefer NEXTAUTH_URL, fallback to site URL
+      let baseUrl = "http://localhost:3000"
+      if (process.env.NEXTAUTH_URL) {
+        baseUrl = process.env.NEXTAUTH_URL
+      } else if (process.env.NETLIFY) {
+        // On Netlify, use the site URL from environment
+        baseUrl = process.env.URL || process.env.DEPLOY_PRIME_URL || "https://capsoai.com"
+      }
+      const musicUrl = `${baseUrl}/background-music/${musicType}.mp3`
+      console.log(`🌐 Attempting to download music from: ${musicUrl}`)
+      
+      try {
+        const response = await fetch(musicUrl)
+        if (response.ok) {
+          // Download to temp file
+          const tempDir = process.env.NETLIFY ? "/tmp" : join(process.cwd(), "tmp")
+          await mkdir(tempDir, { recursive: true }).catch(() => {})
+          musicPath = join(tempDir, `music-${musicType}-${randomUUID()}.mp3`)
+          const musicBuffer = Buffer.from(await response.arrayBuffer())
+          await writeFile(musicPath, musicBuffer)
+          console.log(`✅ Downloaded music file to: ${musicPath} (${musicBuffer.length} bytes)`)
+          musicNeedsDownload = true
+        } else {
+          console.error(`❌ Failed to download music file: HTTP ${response.status}`)
+          return speechAudio
+        }
+      } catch (downloadError: any) {
+        console.error(`❌ Error downloading music file:`, downloadError.message)
+        console.warn(`Background music file not found for: ${musicType}`)
+        console.log("💡 Add background music files to public/background-music/")
+        console.log("   See BACKGROUND_MUSIC_LANGUAGE_SETUP.md for free music sources")
+        return speechAudio
+      }
     }
 
     // Create temp directory if it doesn't exist
@@ -526,6 +560,10 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
       // Cleanup temp files
       await unlink(speechPath).catch(() => {})
       await unlink(outputPath).catch(() => {})
+      // Cleanup downloaded music file if it was downloaded
+      if (musicNeedsDownload && musicPath) {
+        await unlink(musicPath).catch(() => {})
+      }
 
       return mixedAudio
     } catch (mixingError: any) {
@@ -533,6 +571,10 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
       // Cleanup temp files on error
       await unlink(speechPath).catch(() => {})
       await unlink(outputPath).catch(() => {})
+      // Cleanup downloaded music file if it was downloaded
+      if (musicNeedsDownload && musicPath) {
+        await unlink(musicPath).catch(() => {})
+      }
       return speechAudio // Return original if mixing fails
     }
   } catch (error: any) {
@@ -840,6 +882,8 @@ export async function POST(req: Request) {
     console.log("Speed Setting:", speedValue)
     console.log("Voice Name:", voiceName)
     console.log("Summary Length:", summaryLengthValue)
+    console.log("Background Music:", backgroundMusic, "(type:", typeof backgroundMusic, ")")
+    console.log("Language:", language)
 
     // 5. AI Generation Pipeline
 
@@ -879,9 +923,18 @@ export async function POST(req: Request) {
 
     // Step 3.5: Mix background music if selected
     if (backgroundMusic && backgroundMusic !== "none") {
-      console.log(`Step 3.5: Mixing background music: ${backgroundMusic}...`)
-      audioBuffer = await mixBackgroundMusic(audioBuffer, backgroundMusic)
-      console.log("Audio with background music:", audioBuffer.length, "bytes")
+      console.log(`🎵 Step 3.5: Mixing background music: ${backgroundMusic}...`)
+      try {
+        audioBuffer = await mixBackgroundMusic(audioBuffer, backgroundMusic)
+        console.log("✅ Audio with background music:", audioBuffer.length, "bytes")
+      } catch (mixingError: any) {
+        console.error("❌ Failed to mix background music:", mixingError)
+        console.error("Error details:", mixingError.message, mixingError.stack)
+        // Continue with original audio if mixing fails
+        console.log("⚠️  Continuing with original audio (no background music)")
+      }
+    } else {
+      console.log("ℹ️  No background music selected (backgroundMusic:", backgroundMusic, ")")
     }
 
     // Step 4: Prepare audio for response
