@@ -403,19 +403,10 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
       }
     }
 
-    // Verify FFmpeg is accessible by checking the path
-    const finalFfmpegPath = ffmpeg.getFfmpegPath()
-    if (finalFfmpegPath) {
-      if (!existsSync(finalFfmpegPath)) {
-        console.error(`❌ FFmpeg path set but file does not exist: ${finalFfmpegPath}`)
-        console.error("💡 Background music mixing will fail. FFmpeg is required for mixing.")
-        return speechAudio
-      } else {
-        console.log(`✅ FFmpeg verified at: ${finalFfmpegPath}`)
-      }
-    } else {
-      console.log("⚠️  FFmpeg path not set, will try to use system ffmpeg")
-    }
+    // Note: fluent-ffmpeg doesn't have getFfmpegPath() method
+    // We'll rely on fluent-ffmpeg to handle FFmpeg path resolution
+    // If FFmpeg is not available, the error will be caught in the mixing process
+    console.log("✅ FFmpeg setup complete, will attempt mixing")
 
     // Map music type to file path
     // On Netlify, try multiple possible paths for the public folder
@@ -499,9 +490,7 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
     const outputPath = join(tempDir, `mixed-${randomUUID()}.mp3`)
 
     try {
-      // Verify FFmpeg path is set
-      const ffmpegPath = ffmpeg.getFfmpegPath()
-      console.log(`🎬 FFmpeg path: ${ffmpegPath || "Not set (using system ffmpeg)"}`)
+      // Note: fluent-ffmpeg will use the path we set earlier or system ffmpeg
       console.log(`✅ Music file exists and is accessible: ${musicPath}`)
 
       // Write speech audio to temp file
@@ -534,7 +523,6 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
             console.error("Error details:", {
               message: err.message,
               stack: err.stack,
-              ffmpegPath: ffmpegPath,
               speechPath: speechPath,
               musicPath: musicPath,
               outputPath: outputPath,
