@@ -657,6 +657,70 @@ async function generateSummary(text: string, summaryLength: "short" | "medium" |
 }
 
 /**
+ * Clean markdown formatting from text for TTS
+ * Removes markdown syntax so TTS doesn't read formatting characters
+ */
+function cleanMarkdownForTTS(text: string): string {
+  let cleaned = text
+
+  // Remove markdown bold: **text** or __text__
+  // Must do this first before handling italic
+  cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, "$1")
+  cleaned = cleaned.replace(/__(.*?)__/g, "$1")
+
+  // Remove markdown italic: *text* or _text_
+  // Match single asterisks/underscores that are not part of bold (already removed)
+  // Pattern: whitespace or start, then * or _, then text, then * or _, then whitespace or end
+  cleaned = cleaned.replace(/(^|\s)\*([^*\n]+?)\*(\s|$)/g, "$1$2$3")
+  cleaned = cleaned.replace(/(^|\s)_([^_\n]+?)_(\s|$)/g, "$1$2$3")
+  
+  // Also handle italic at start/end of line
+  cleaned = cleaned.replace(/^\*([^*\n]+?)\*(\s|$)/gm, "$1$2")
+  cleaned = cleaned.replace(/^_([^_\n]+?)_(\s|$)/gm, "$1$2")
+
+  // Remove markdown headers: # Header, ## Header, etc.
+  cleaned = cleaned.replace(/^#{1,6}\s+/gm, "")
+
+  // Remove markdown links: [text](url) -> text
+  cleaned = cleaned.replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1")
+
+  // Remove markdown images: ![alt](url) -> alt
+  cleaned = cleaned.replace(/!\[([^\]]*)\]\([^\)]+\)/g, "$1")
+
+  // Remove markdown code blocks: `code` -> code
+  cleaned = cleaned.replace(/`([^`]+)`/g, "$1")
+
+  // Remove markdown code blocks with triple backticks
+  cleaned = cleaned.replace(/```[\s\S]*?```/g, "")
+
+  // Remove markdown lists: - item, * item, 1. item
+  cleaned = cleaned.replace(/^[\s]*[-*+]\s+/gm, "")
+  cleaned = cleaned.replace(/^\d+\.\s+/gm, "")
+
+  // Remove markdown blockquotes: > text
+  cleaned = cleaned.replace(/^>\s+/gm, "")
+
+  // Remove markdown horizontal rules: ---, ***, ___
+  cleaned = cleaned.replace(/^[-*_]{3,}$/gm, "")
+
+  // Remove markdown strikethrough: ~~text~~
+  cleaned = cleaned.replace(/~~(.*?)~~/g, "$1")
+
+  // Clean up extra whitespace
+  // Replace multiple spaces with single space (but preserve newlines)
+  cleaned = cleaned.replace(/[ \t]+/g, " ")
+  // Replace multiple newlines with double newline (paragraph break)
+  cleaned = cleaned.replace(/\n\s*\n\s*\n+/g, "\n\n")
+  // Remove trailing spaces from lines
+  cleaned = cleaned.replace(/[ \t]+$/gm, "")
+
+  // Trim the result
+  cleaned = cleaned.trim()
+
+  return cleaned
+}
+
+/**
  * Step 2: Generate audio using LemonFox TTS API
  */
 async function generateAudio(
@@ -670,9 +734,17 @@ async function generateAudio(
       throw new Error("LemonFox API key is not configured. Please set LEMONFOX_API_KEY in .env.local with your actual API key")
     }
 
+    // Clean markdown formatting from text before sending to TTS
+    const cleanedText = cleanMarkdownForTTS(text)
+    if (cleanedText !== text) {
+      console.log("🧹 Cleaned markdown formatting from text for TTS")
+      console.log("  - Original length:", text.length)
+      console.log("  - Cleaned length:", cleanedText.length)
+    }
+
     console.log("Calling LemonFox TTS API with:")
     console.log("  - Voice ID:", voiceId)
-    console.log("  - Text length:", text.length, "characters")
+    console.log("  - Text length:", cleanedText.length, "characters")
     console.log("  - Speed:", speed, "(LemonFox supports speed directly)")
 
     // LemonFox API call
@@ -684,7 +756,7 @@ async function generateAudio(
         "Authorization": `Bearer ${LEMONFOX_API_KEY}`,
       },
       body: JSON.stringify({
-        input: text,
+        input: cleanedText,
         voice: voiceId,
         response_format: "mp3",
         speed: speed, // LemonFox supports speed directly (0.25 to 4.0)
