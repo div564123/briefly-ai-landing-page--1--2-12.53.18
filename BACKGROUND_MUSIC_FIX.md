@@ -133,3 +133,4 @@ If FFmpeg doesn't work on Netlify, consider these alternatives:
 - Music loops automatically to match speech duration
 - If mixing fails, original speech audio is returned (graceful degradation)
 
+

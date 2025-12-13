@@ -71,3 +71,4 @@ Once you add DATABASE_URL to Netlify and redeploy, the error will be fixed!
 
 
 
+
