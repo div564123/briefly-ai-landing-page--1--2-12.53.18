@@ -279,7 +279,16 @@ async function adjustPlaybackSpeed(audioBuffer: Buffer, speed: number): Promise<
 
     // Create temp directory if it doesn't exist
     // Use /tmp for Netlify compatibility (read-write access)
-    const tempDir = process.env.NETLIFY ? "/tmp" : join(process.cwd(), "tmp")
+    // Detect Netlify environment
+    const isNetlifyEnv = !!(
+      process.env.NETLIFY || 
+      process.env.NETLIFY_DEV || 
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.AWS_EXECUTION_ENV ||
+      process.cwd().includes("/var/task") ||
+      process.cwd().includes("/opt/build")
+    )
+    const tempDir = isNetlifyEnv ? "/tmp" : join(process.cwd(), "tmp")
     await mkdir(tempDir, { recursive: true }).catch(() => {
       // Directory might already exist
     })
@@ -479,34 +488,69 @@ async function mixBackgroundMusic(speechAudio: Buffer, musicType: string): Promi
     }
 
     // Create temp directory if it doesn't exist
-    // Use /tmp for Netlify compatibility (read-write access)
-    const tempDir = process.env.NETLIFY ? "/tmp" : join(process.cwd(), "tmp")
-    await mkdir(tempDir, { recursive: true }).catch(() => {
-      // Directory might already exist
-    })
+    // On Netlify Functions, we MUST use /tmp (only writable directory)
+    // Detect Netlify by checking multiple environment variables or path
+    const isNetlify = !!(
+      process.env.NETLIFY || 
+      process.env.NETLIFY_DEV || 
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.AWS_EXECUTION_ENV ||
+      process.cwd().includes("/var/task") ||
+      process.cwd().includes("/opt/build")
+    )
+    
+    // Always use /tmp on Netlify, fallback to process.cwd()/tmp for local dev
+    const tempDir = isNetlify ? "/tmp" : join(process.cwd(), "tmp")
+    
+    console.log(`📁 Environment detection:`)
+    console.log(`   - process.cwd(): ${process.cwd()}`)
+    console.log(`   - NETLIFY: ${process.env.NETLIFY}`)
+    console.log(`   - AWS_LAMBDA_FUNCTION_NAME: ${process.env.AWS_LAMBDA_FUNCTION_NAME}`)
+    console.log(`   - isNetlify: ${isNetlify}`)
+    console.log(`   - Using temp directory: ${tempDir}`)
+    
+    // Ensure temp directory exists
+    try {
+      await mkdir(tempDir, { recursive: true })
+      console.log(`✅ Temp directory created/verified: ${tempDir}`)
+      
+      // Verify we can write to it by checking if it exists
+      if (!existsSync(tempDir)) {
+        throw new Error(`Temp directory does not exist after creation: ${tempDir}`)
+      }
+    } catch (mkdirError: any) {
+      console.error(`❌ Failed to create temp directory: ${tempDir}`, mkdirError.message)
+      console.error(`   Error code: ${mkdirError.code}, errno: ${mkdirError.errno}`)
+      throw new Error(`Cannot create temp directory: ${tempDir}. Error: ${mkdirError.message}`)
+    }
 
     // Create temp file paths
     const speechPath = join(tempDir, `speech-${randomUUID()}.mp3`)
     const outputPath = join(tempDir, `mixed-${randomUUID()}.mp3`)
+    
+    console.log(`📝 Temp file paths:`)
+    console.log(`   - Speech: ${speechPath}`)
+    console.log(`   - Output: ${outputPath}`)
 
     try {
       // Note: fluent-ffmpeg will use the path we set earlier or system ffmpeg
       console.log(`✅ Music file exists and is accessible: ${musicPath}`)
 
       // Write speech audio to temp file
+      console.log(`📝 Writing speech audio to temp file: ${speechPath} (${speechAudio.length} bytes)`)
       await writeFile(speechPath, speechAudio)
       console.log(`📝 Speech audio written to temp file: ${speechPath}`)
       console.log(`🎵 Music file path: ${musicPath}`)
 
       // Mix audio using ffmpeg
-      // Speech volume: 0.7 (70%), Music volume: 0.15 (15%) - Reduced for less loud background
+      // Speech volume: 0.7 (70%), Music volume: 0.3 (30%) - Increased for more audible background
       await new Promise<void>((resolve, reject) => {
         const ffmpegProcess = ffmpeg()
           .input(speechPath)
           .input(musicPath)
           .complexFilter([
             "[0:a]volume=0.7[speech]",
-            "[1:a]volume=0.15,aloop=loop=-1:size=2e+09[music]",
+            "[1:a]volume=0.3,aloop=loop=-1:size=2e+09[music]",
             "[speech][music]amix=inputs=2:duration=first:dropout_transition=2[mixed]"
           ])
           .outputOptions(["-map", "[mixed]"])
