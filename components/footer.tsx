@@ -68,18 +68,8 @@ export default function Footer() {
             <h4 className="font-semibold text-foreground mb-4">Legal</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/terms" className="text-muted-foreground hover:text-primary transition">
-                  Terms
-                </Link>
-              </li>
-              <li>
                 <Link href="/privacy" className="text-muted-foreground hover:text-primary transition">
                   Privacy
-                </Link>
-              </li>
-              <li>
-                <Link href="/cookies" className="text-muted-foreground hover:text-primary transition">
-                  Cookies
                 </Link>
               </li>
             </ul>

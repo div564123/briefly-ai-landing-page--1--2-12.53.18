@@ -138,8 +138,8 @@ export default function PrivacyPage() {
             </h2>
             <p className="text-muted-foreground leading-relaxed">
               If you have any questions about this Privacy Policy, please contact us at{" "}
-              <a href="mailto:privacy@capso.ai" className="text-primary hover:text-secondary">
-                privacy@capso.ai
+              <a href="mailto:capsoai.contact@gmail.com" className="text-primary hover:text-secondary">
+                capsoai.contact@gmail.com
               </a>
             </p>
           </section>

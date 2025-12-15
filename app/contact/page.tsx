@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, Mail, MessageSquare, Phone, MapPin, Send } from "lucide-react"
+import { ArrowLeft, Mail, MessageSquare, Send } from "lucide-react"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -29,37 +29,17 @@ export default function ContactPage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
-          {/* Contact Options */}
+        <div className="max-w-md mx-auto mb-12">
+          {/* Contact Option */}
           <div className="bg-white rounded-2xl p-6 soft-shadow hover-lift text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4">
               <Mail className="w-6 h-6 text-primary" />
             </div>
             <h3 className="font-semibold mb-2">Email Us</h3>
             <p className="text-sm text-muted-foreground mb-3">We'll respond within 24 hours</p>
-            <a href="mailto:support@capso.ai" className="text-primary hover:text-secondary transition">
-              support@capso.ai
+            <a href="mailto:capsoai.contact@gmail.com" className="text-primary hover:text-secondary transition">
+              capsoai.contact@gmail.com
             </a>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 soft-shadow hover-lift text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4">
-              <Phone className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-2">Call Us</h3>
-            <p className="text-sm text-muted-foreground mb-3">Mon-Fri from 8am to 6pm</p>
-            <a href="tel:+1234567890" className="text-primary hover:text-secondary transition">
-              +1 (234) 567-890
-            </a>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 soft-shadow hover-lift text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4">
-              <MapPin className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-2">Visit Us</h3>
-            <p className="text-sm text-muted-foreground mb-3">Come say hello</p>
-            <p className="text-primary">San Francisco, CA</p>
           </div>
         </div>
 

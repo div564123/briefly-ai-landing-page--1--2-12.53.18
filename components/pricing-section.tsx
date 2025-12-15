@@ -1,54 +1,12 @@
 "use client"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Check, X, Zap, Crown } from "lucide-react"
 import Link from "next/link"
-import { useSession } from "next-auth/react"
 
 export default function PricingSection() {
-  const { data: session, status } = useSession()
-  const [loading, setLoading] = useState<string | null>(null)
-  
-  // Don't block rendering if session is loading
-  const isLoggedIn = status === "authenticated" && !!session
-  const handleCheckout = async (planName: string) => {
-    if (planName !== "Pro Action") return
-
-    // Check if user is logged in
-    if (!isLoggedIn) {
-      // Redirect to signup page if not logged in
-      window.location.href = "/signup"
-      return
-    }
-
-    setLoading(planName)
-
-    try {
-      const response = await fetch("/api/checkout/create-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ priceId: null }), // You can pass a Stripe price ID here if you have one
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create checkout session")
-      }
-
-      // Redirect to Stripe Checkout
-      if (data.url) {
-        window.location.href = data.url
-      }
-    } catch (error) {
-      console.error("Checkout error:", error)
-      alert(error instanceof Error ? error.message : "Something went wrong. Please try again.")
-      setLoading(null)
-    }
-  }
+  // On the landing page, the upgrade button should redirect to login
+  // Only the pricing page in the dashboard should handle Stripe checkout
 
   const plans = [
     {
@@ -144,31 +102,17 @@ export default function PricingSection() {
                   </div>
 
                   {/* CTA */}
-                  {plan.isPro ? (
+                  <Link href={plan.isPro ? "/login" : plan.link}>
                     <Button
-                      onClick={() => handleCheckout(plan.name)}
-                      disabled={loading === plan.name}
                       className={`w-full py-6 rounded-xl font-semibold mb-8 transition-all ${
                         plan.highlighted
                           ? "bg-white text-primary hover:bg-white/90 hover:scale-105"
                           : "gradient-purple text-white hover:shadow-lg hover:scale-105"
                       }`}
                     >
-                      {loading === plan.name ? "Loading..." : plan.cta}
+                      {plan.cta}
                     </Button>
-                  ) : (
-                    <Link href={plan.link}>
-                      <Button
-                        className={`w-full py-6 rounded-xl font-semibold mb-8 transition-all ${
-                          plan.highlighted
-                            ? "bg-white text-primary hover:bg-white/90 hover:scale-105"
-                            : "gradient-purple text-white hover:shadow-lg hover:scale-105"
-                        }`}
-                      >
-                        {plan.cta}
-                      </Button>
-                    </Link>
-                  )}
+                  </Link>
 
                   {/* Features List */}
                   <div className="space-y-4">

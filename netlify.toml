@@ -24,3 +24,33 @@
   node_bundler = "esbuild"
   included_files = ["prisma/**"]
 
+# Force HTTPS redirects
+[[redirects]]
+  from = "http://capsoai.com/*"
+  to = "https://capsoai.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.capsoai.com/*"
+  to = "https://capsoai.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.capsoai.com/*"
+  to = "https://capsoai.com/:splat"
+  status = 301
+  force = true
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
