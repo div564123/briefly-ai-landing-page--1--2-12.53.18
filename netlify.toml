@@ -7,9 +7,9 @@
   NPM_FLAGS = "--legacy-peer-deps"
   # Set NETLIFY flag for code that needs to detect Netlify environment
   NETLIFY = "true"
-  # Secrets scanning configuration - ignore documentation files
-  SECRETS_SCAN_OMIT_PATHS = "*.md,*.txt"
-  SECRETS_SCAN_OMIT_KEYS = "LEMONFOX_API_URL"
+  # Secrets scanning configuration - ignore documentation files and build outputs
+  SECRETS_SCAN_OMIT_PATHS = "*.md,*.txt,.netlify/**/*,.next/**/*"
+  SECRETS_SCAN_OMIT_KEYS = "LEMONFOX_API_URL,NEXTAUTH_URL"
   
   # NOTE: DATABASE_URL should NOT be set here
   # It must be set in Netlify Dashboard (Site settings → Environment variables)
